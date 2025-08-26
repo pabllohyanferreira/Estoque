@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter, Edit, Trash2, Package, AlertTriangle } from 'lucide-react';
 import { itemsAPI } from '../services/api';
 import toast from 'react-hot-toast';
+import { formatCurrency } from '../utils/formatters';
 import ItemModal from '../components/ItemModal';
 import StockModal from '../components/StockModal';
 import ConfirmModal from '../components/ConfirmModal';
@@ -118,12 +119,7 @@ const Items = () => {
     setShowConfirmModal(true);
   };
 
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value || 0);
-  };
+
 
   const getStatusColor = (item) => {
     if (item.quantity <= item.min_quantity) return 'bg-red-100 text-red-800';
@@ -143,7 +139,7 @@ const Items = () => {
         </div>
         <button
           onClick={() => setShowItemModal(true)}
-          className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className="mt-4 sm:mt-0 btn-primary btn-glow"
         >
           <Plus className="h-4 w-4 mr-2" />
           Novo Produto
@@ -202,7 +198,7 @@ const Items = () => {
           <div className="flex items-end">
             <button
               onClick={loadItems}
-              className="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="w-full btn-secondary btn-elevate"
             >
               <Filter className="h-4 w-4 mr-2" />
               Filtrar
@@ -283,21 +279,21 @@ const Items = () => {
                       <div className="flex items-center justify-end space-x-2">
                         <button
                           onClick={() => openStockModal(item)}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="text-blue-600 hover:text-blue-900 btn-action"
                           title="Ajustar estoque"
                         >
                           <Package className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => openEditModal(item)}
-                          className="text-indigo-600 hover:text-indigo-900"
+                          className="text-indigo-600 hover:text-indigo-900 btn-action"
                           title="Editar"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => openDeleteModal(item)}
-                          className="text-red-600 hover:text-red-900"
+                          className="text-red-600 hover:text-red-900 btn-action"
                           title="Deletar"
                         >
                           <Trash2 className="h-4 w-4" />

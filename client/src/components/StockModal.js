@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { X, Package } from 'lucide-react';
 
@@ -7,7 +7,7 @@ const StockModal = ({ isOpen, onClose, onSubmit, item }) => {
   const { register, handleSubmit, reset, watch, formState: { errors } } = useForm();
   const movementType = watch('type', 'entrada');
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen) {
       reset({
         type: 'entrada',
@@ -45,7 +45,7 @@ const StockModal = ({ isOpen, onClose, onSubmit, item }) => {
               </h3>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 btn-close"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -217,7 +217,7 @@ const StockModal = ({ isOpen, onClose, onSubmit, item }) => {
               type="button"
               onClick={handleSubmit(handleFormSubmit)}
               disabled={isSubmitting}
-              className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 sm:ml-3 sm:w-auto sm:text-sm"
+              className="w-full btn-primary btn-glow disabled:opacity-50 sm:ml-3 sm:w-auto sm:text-sm"
             >
               {isSubmitting ? (
                 <>
@@ -231,7 +231,7 @@ const StockModal = ({ isOpen, onClose, onSubmit, item }) => {
             <button
               type="button"
               onClick={onClose}
-              className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+              className="mt-3 w-full btn-secondary btn-elevate sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
             >
               Cancelar
             </button>

@@ -36,8 +36,6 @@ export const clientsAPI = {
   create: (data) => api.post('/clients', data),
   update: (id, data) => api.put(`/clients/${id}`, data),
   delete: (id) => api.delete(`/clients/${id}`),
-  getAccounts: (id) => api.get(`/clients/${id}/accounts`),
-  getStats: (id) => api.get(`/clients/${id}/stats`),
 };
 
 // Serviços para Contas a Pagar

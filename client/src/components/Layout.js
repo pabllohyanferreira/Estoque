@@ -7,9 +7,7 @@ import {
   CreditCard, 
   Receipt, 
   Menu, 
-  X,
-  BarChart3,
-  Settings
+  X
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
@@ -76,7 +74,7 @@ const Layout = ({ children }) => {
         <div className="sticky top-0 z-10 md:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 bg-gray-100">
           <button
             type="button"
-            className="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+            className="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 btn-action"
             onClick={() => setSidebarOpen(true)}
           >
             <span className="sr-only">Abrir sidebar</span>
@@ -103,7 +101,7 @@ const Layout = ({ children }) => {
               <div className="absolute top-0 right-0 -mr-12 pt-2">
                 <button
                   type="button"
-                  className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+                  className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white btn-close"
                   onClick={() => setSidebarOpen(false)}
                 >
                   <span className="sr-only">Fechar sidebar</span>

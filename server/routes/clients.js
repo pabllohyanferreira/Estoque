@@ -139,42 +139,6 @@ router.delete('/:id', (req, res) => {
   });
 });
 
-// Buscar contas a receber do cliente
-router.get('/:id/accounts', (req, res) => {
-  const { id } = req.params;
-  
-  db.all(`
-    SELECT ar.*, c.name as client_name 
-    FROM accounts_receivable ar 
-    LEFT JOIN clients c ON ar.client_id = c.id 
-    WHERE ar.client_id = ?
-    ORDER BY ar.due_date
-  `, [id], (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: 'Erro ao buscar contas', details: err.message });
-    }
-    res.json(rows);
-  });
-});
 
-// Estatísticas do cliente
-router.get('/:id/stats', (req, res) => {
-  const { id } = req.params;
-  
-  db.get(`
-    SELECT 
-      COUNT(*) as total_accounts,
-      SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) as pending_amount,
-      SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END) as paid_amount,
-      SUM(CASE WHEN due_date < DATE('now') AND status = 'pending' THEN amount ELSE 0 END) as overdue_amount
-    FROM accounts_receivable 
-    WHERE client_id = ?
-  `, [id], (err, stats) => {
-    if (err) {
-      return res.status(500).json({ error: 'Erro ao buscar estatísticas', details: err.message });
-    }
-    res.json(stats);
-  });
-});
 
 module.exports = router; 

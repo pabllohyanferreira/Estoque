@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter, Edit, Trash2, Receipt, Calendar, DollarSign, Users } from 'lucide-react';
 import { accountsReceivableAPI, clientsAPI } from '../services/api';
 import toast from 'react-hot-toast';
+import { formatCurrency, formatDate, isOverdue } from '../utils/formatters';
 import AccountModal from '../components/AccountModal';
 import ConfirmModal from '../components/ConfirmModal';
-import { format, parseISO } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+
 
 const AccountsReceivable = () => {
   const [accounts, setAccounts] = useState([]);
@@ -100,20 +100,7 @@ const AccountsReceivable = () => {
     setShowConfirmModal(true);
   };
 
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value || 0);
-  };
 
-  const formatDate = (dateString) => {
-    try {
-      return format(parseISO(dateString), 'dd/MM/yyyy', { locale: ptBR });
-    } catch {
-      return dateString;
-    }
-  };
 
   const getStatusColor = (status, dueDate) => {
     const today = new Date();
@@ -134,11 +121,7 @@ const AccountsReceivable = () => {
     }
   };
 
-  const isOverdue = (dueDate) => {
-    const today = new Date();
-    const due = new Date(dueDate);
-    return due < today;
-  };
+
 
   return (
     <div className="space-y-6">
@@ -152,7 +135,7 @@ const AccountsReceivable = () => {
         </div>
         <button
           onClick={() => setShowAccountModal(true)}
-          className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className="mt-4 sm:mt-0 btn-primary btn-glow"
         >
           <Plus className="h-4 w-4 mr-2" />
           Nova Conta
@@ -215,7 +198,7 @@ const AccountsReceivable = () => {
           <div className="flex items-end">
             <button
               onClick={loadAccounts}
-              className="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="w-full btn-secondary btn-elevate"
             >
               <Filter className="h-4 w-4 mr-2" />
               Filtrar
@@ -297,14 +280,14 @@ const AccountsReceivable = () => {
                       <div className="flex items-center justify-end space-x-2">
                         <button
                           onClick={() => openEditModal(account)}
-                          className="text-indigo-600 hover:text-indigo-900"
+                          className="text-indigo-600 hover:text-indigo-900 btn-action"
                           title="Editar"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => openDeleteModal(account)}
-                          className="text-red-600 hover:text-red-900"
+                          className="text-red-600 hover:text-red-900 btn-action"
                           title="Deletar"
                         >
                           <Trash2 className="h-4 w-4" />
