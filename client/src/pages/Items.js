@@ -55,7 +55,13 @@ const Items = () => {
 
   const handleCreateItem = async (itemData) => {
     try {
-      await itemsAPI.create(itemData);
+      // Se itemData é FormData (com imagem), enviar diretamente
+      if (itemData instanceof FormData) {
+        await itemsAPI.create(itemData);
+      } else {
+        // Se não é FormData, enviar como JSON
+        await itemsAPI.create(itemData);
+      }
       toast.success('Produto criado com sucesso!');
       setShowItemModal(false);
       loadItems();
@@ -67,7 +73,13 @@ const Items = () => {
 
   const handleUpdateItem = async (itemData) => {
     try {
-      await itemsAPI.update(editingItem.id, itemData);
+      // Se itemData é FormData (com imagem), enviar diretamente
+      if (itemData instanceof FormData) {
+        await itemsAPI.update(editingItem.id, itemData);
+      } else {
+        // Se não é FormData, enviar como JSON
+        await itemsAPI.update(editingItem.id, itemData);
+      }
       toast.success('Produto atualizado com sucesso!');
       setShowItemModal(false);
       setEditingItem(null);
@@ -122,9 +134,9 @@ const Items = () => {
 
 
   const getStatusColor = (item) => {
-    if (item.quantity <= item.min_quantity) return 'bg-red-100 text-red-800';
-    if (item.quantity <= item.min_quantity * 1.5) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-green-100 text-green-800';
+    if (item.quantity <= item.min_quantity) return 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200';
+    if (item.quantity <= item.min_quantity * 1.5) return 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200';
+    return 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200';
   };
 
   return (
@@ -132,14 +144,14 @@ const Items = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Produtos</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Produtos</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Gerencie seu catálogo de produtos e estoque
           </p>
         </div>
         <button
           onClick={() => setShowItemModal(true)}
-          className="mt-4 sm:mt-0 btn-primary btn-glow"
+          className="mt-4 sm:mt-0 btn-primary btn-glow btn-expand"
         >
           <Plus className="h-4 w-4 mr-2" />
           Novo Produto
@@ -147,32 +159,32 @@ const Items = () => {
       </div>
 
       {/* Filtros */}
-      <div className="bg-white shadow rounded-lg p-6">
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 transition-colors duration-200 card-expand animate-grow-in">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Buscar
             </label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Nome, descrição ou código..."
-                className="pl-10 block w-full border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="pl-10 block w-full border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white input-expand"
               />
             </div>
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Categoria
             </label>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="block w-full border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="block w-full border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white input-expand"
             >
               <option value="">Todas as categorias</option>
               {categories.map((category) => (
@@ -189,16 +201,16 @@ const Items = () => {
                 type="checkbox"
                 checked={showLowStock}
                 onChange={(e) => setShowLowStock(e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700 input-expand"
               />
-              <span className="ml-2 text-sm text-gray-700">Apenas estoque baixo</span>
+              <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Apenas estoque baixo</span>
             </label>
           </div>
 
           <div className="flex items-end">
             <button
               onClick={loadItems}
-              className="w-full btn-secondary btn-elevate"
+              className="w-full btn-secondary btn-elevate btn-expand"
             >
               <Filter className="h-4 w-4 mr-2" />
               Filtrar
@@ -208,52 +220,60 @@ const Items = () => {
       </div>
 
       {/* Lista de Produtos */}
-      <div className="bg-white shadow rounded-lg">
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg transition-colors duration-200 card-expand animate-grow-in">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="spinner"></div>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+          <div>
+            <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Produto
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Categoria
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Estoque
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Preço
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Custo
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Ações
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {items.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {items.map((item, index) => (
+                  <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors table-row-expand" style={{ animationDelay: `${index * 50}ms` }}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <Package className="h-8 w-8 text-gray-400 mr-3" />
+                        {item.image_url ? (
+                          <img
+                            src={item.image_url}
+                            alt={item.name}
+                            className="h-12 w-12 object-cover rounded-lg mr-3 border border-gray-200 dark:border-gray-600"
+                          />
+                        ) : (
+                          <Package className="h-8 w-8 text-gray-400 dark:text-gray-500 mr-3" />
+                        )}
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{item.name}</div>
-                          <div className="text-sm text-gray-500">{item.description}</div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">{item.name}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">{item.description}</div>
                           {item.barcode && (
-                            <div className="text-xs text-gray-400">Código: {item.barcode}</div>
+                            <div className="text-xs text-gray-400 dark:text-gray-500">Código: {item.barcode}</div>
                           )}
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                       {item.category || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -265,35 +285,35 @@ const Items = () => {
                           <AlertTriangle className="h-4 w-4 text-red-500 ml-2" />
                         )}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
                         Mín: {item.min_quantity} {item.unit}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {formatCurrency(item.price)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                       {formatCurrency(item.cost)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">
                         <button
                           onClick={() => openStockModal(item)}
-                          className="text-blue-600 hover:text-blue-900 btn-action"
+                          className="text-blue-600 hover:text-blue-900 btn-action btn-expand"
                           title="Ajustar estoque"
                         >
                           <Package className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => openEditModal(item)}
-                          className="text-indigo-600 hover:text-indigo-900 btn-action"
+                          className="text-indigo-600 hover:text-indigo-900 btn-action btn-expand"
                           title="Editar"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => openDeleteModal(item)}
-                          className="text-red-600 hover:text-red-900 btn-action"
+                          className="text-red-600 hover:text-red-900 btn-action btn-expand"
                           title="Deletar"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -309,9 +329,9 @@ const Items = () => {
         
         {!loading && items.length === 0 && (
           <div className="text-center py-12">
-            <Package className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhum produto encontrado</h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <Package className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">Nenhum produto encontrado</h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Comece criando seu primeiro produto.
             </p>
           </div>

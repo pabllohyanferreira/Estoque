@@ -134,6 +134,21 @@ router.delete('/payable/:id', (req, res) => {
   });
 });
 
+// Marcar conta a pagar como paga
+router.post('/payable/:id/pay', (req, res) => {
+  const { id } = req.params;
+
+  db.run('UPDATE accounts_payable SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', ['paid', id], function(err) {
+    if (err) {
+      return res.status(500).json({ error: 'Erro ao marcar conta como paga', details: err.message });
+    }
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Conta a pagar não encontrada' });
+    }
+    res.json({ message: 'Conta marcada como paga com sucesso' });
+  });
+});
+
 // ==================== CONTAS A RECEBER ====================
 
 // Buscar todas as contas a receber
@@ -273,6 +288,21 @@ router.delete('/receivable/:id', (req, res) => {
       return res.status(404).json({ error: 'Conta a receber não encontrada' });
     }
     res.json({ message: 'Conta a receber deletada com sucesso' });
+  });
+});
+
+// Marcar conta a receber como paga
+router.post('/receivable/:id/pay', (req, res) => {
+  const { id } = req.params;
+
+  db.run('UPDATE accounts_receivable SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', ['paid', id], function(err) {
+    if (err) {
+      return res.status(500).json({ error: 'Erro ao marcar conta como paga', details: err.message });
+    }
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Conta a receber não encontrada' });
+    }
+    res.json({ message: 'Conta marcada como paga com sucesso' });
   });
 });
 

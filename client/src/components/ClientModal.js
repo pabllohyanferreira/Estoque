@@ -52,15 +52,15 @@ const ClientModal = ({ isOpen, onClose, onSubmit, client }) => {
 
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
 
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full modal-expand scrollable-content">
+          <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
+              <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
                 {client ? 'Editar Cliente' : 'Novo Cliente'}
               </h3>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 btn-close"
+                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 btn-close"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -69,39 +69,39 @@ const ClientModal = ({ isOpen, onClose, onSubmit, client }) => {
             <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
               {/* Nome */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Nome *
                 </label>
                 <input
                   type="text"
                   {...register('name', { required: 'Nome é obrigatório' })}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                 />
                 {errors.name && (
-                  <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name.message}</p>
                 )}
               </div>
 
               {/* Tipo */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Tipo *
                 </label>
                 <select
                   {...register('type', { required: 'Tipo é obrigatório' })}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                 >
                   <option value="individual">Pessoa Física</option>
                   <option value="company">Pessoa Jurídica</option>
                 </select>
                 {errors.type && (
-                  <p className="mt-1 text-sm text-red-600">{errors.type.message}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.type.message}</p>
                 )}
               </div>
 
               {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Email
                 </label>
                 <input
@@ -112,55 +112,55 @@ const ClientModal = ({ isOpen, onClose, onSubmit, client }) => {
                       message: 'Email inválido'
                     }
                   })}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                 />
                 {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email.message}</p>
                 )}
               </div>
 
               {/* Telefone */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Telefone
                 </label>
                 <input
                   type="text"
                   {...register('phone')}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                   placeholder="(11) 99999-9999"
                 />
               </div>
 
               {/* CPF/CNPJ */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   CPF/CNPJ
                 </label>
                 <input
                   type="text"
                   {...register('cpf_cnpj')}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                   placeholder="000.000.000-00 ou 00.000.000/0000-00"
                 />
               </div>
 
               {/* Endereço */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Endereço
                 </label>
                 <textarea
                   {...register('address')}
                   rows={3}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                   placeholder="Rua, número, bairro, cidade, estado, CEP"
                 />
               </div>
             </form>
           </div>
 
-          <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+          <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
             <button
               type="button"
               onClick={handleSubmit(handleFormSubmit)}

@@ -22,8 +22,28 @@ api.interceptors.response.use(
 export const itemsAPI = {
   getAll: (params = {}) => api.get('/items', { params }),
   getById: (id) => api.get(`/items/${id}`),
-  create: (data) => api.post('/items', data),
-  update: (id, data) => api.put(`/items/${id}`, data),
+  create: (data) => {
+    // Se data é FormData, não definir Content-Type (deixar o browser definir)
+    if (data instanceof FormData) {
+      return api.post('/items', data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+    }
+    return api.post('/items', data);
+  },
+  update: (id, data) => {
+    // Se data é FormData, não definir Content-Type (deixar o browser definir)
+    if (data instanceof FormData) {
+      return api.put(`/items/${id}`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+    }
+    return api.put(`/items/${id}`, data);
+  },
   delete: (id) => api.delete(`/items/${id}`),
   updateStock: (id, data) => api.post(`/items/${id}/stock`, data),
   getCategories: () => api.get('/items/categories/list'),
@@ -45,6 +65,7 @@ export const accountsPayableAPI = {
   create: (data) => api.post('/accounts/payable', data),
   update: (id, data) => api.put(`/accounts/payable/${id}`, data),
   delete: (id) => api.delete(`/accounts/payable/${id}`),
+  markAsPaid: (id) => api.post(`/accounts/payable/${id}/pay`),
 };
 
 // Serviços para Contas a Receber
@@ -54,6 +75,7 @@ export const accountsReceivableAPI = {
   create: (data) => api.post('/accounts/receivable', data),
   update: (id, data) => api.put(`/accounts/receivable/${id}`, data),
   delete: (id) => api.delete(`/accounts/receivable/${id}`),
+  markAsPaid: (id) => api.post(`/accounts/receivable/${id}/pay`),
 };
 
 // Serviços para Estatísticas

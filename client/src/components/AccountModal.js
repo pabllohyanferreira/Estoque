@@ -63,15 +63,15 @@ const AccountModal = ({ isOpen, onClose, onSubmit, account, type, clients = [] }
 
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
 
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full modal-expand scrollable-content">
+          <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
+              <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
                 {getTitle()}
               </h3>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 btn-close"
+                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 btn-close"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -80,23 +80,23 @@ const AccountModal = ({ isOpen, onClose, onSubmit, account, type, clients = [] }
             <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
               {/* Descrição */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Descrição *
                 </label>
                 <input
                   type="text"
                   {...register('description', { required: 'Descrição é obrigatória' })}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                   placeholder="Descrição da conta..."
                 />
                 {errors.description && (
-                  <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.description.message}</p>
                 )}
               </div>
 
               {/* Valor */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Valor *
                 </label>
                 <input
@@ -107,37 +107,37 @@ const AccountModal = ({ isOpen, onClose, onSubmit, account, type, clients = [] }
                     required: 'Valor é obrigatório',
                     min: { value: 0, message: 'Valor deve ser positivo' }
                   })}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                   placeholder="0,00"
                 />
                 {errors.amount && (
-                  <p className="mt-1 text-sm text-red-600">{errors.amount.message}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.amount.message}</p>
                 )}
               </div>
 
               {/* Data de Vencimento */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Data de Vencimento *
                 </label>
                 <input
                   type="date"
                   {...register('due_date', { required: 'Data de vencimento é obrigatória' })}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                 />
                 {errors.due_date && (
-                  <p className="mt-1 text-sm text-red-600">{errors.due_date.message}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.due_date.message}</p>
                 )}
               </div>
 
               {/* Status */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Status
                 </label>
                 <select
                   {...register('status')}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                 >
                   <option value="pending">Pendente</option>
                   <option value="paid">Pago</option>
@@ -148,12 +148,12 @@ const AccountModal = ({ isOpen, onClose, onSubmit, account, type, clients = [] }
               {/* Cliente (apenas para contas a receber) */}
               {type === 'receivable' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Cliente
                   </label>
                   <select
                     {...register('client_id')}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                   >
                     <option value="">Selecione um cliente</option>
                     {clients.map((client) => (
@@ -168,13 +168,13 @@ const AccountModal = ({ isOpen, onClose, onSubmit, account, type, clients = [] }
               {/* Fornecedor (apenas para contas a pagar) */}
               {type === 'payable' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Fornecedor
                   </label>
                   <input
                     type="text"
                     {...register('supplier')}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                     placeholder="Nome do fornecedor..."
                   />
                 </div>
@@ -182,12 +182,12 @@ const AccountModal = ({ isOpen, onClose, onSubmit, account, type, clients = [] }
 
               {/* Categoria */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Categoria
                 </label>
                 <select
                   {...register('category')}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                 >
                   <option value="">Selecione uma categoria</option>
                   <option value="Alimentação">Alimentação</option>
@@ -202,20 +202,20 @@ const AccountModal = ({ isOpen, onClose, onSubmit, account, type, clients = [] }
 
               {/* Observações */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Observações
                 </label>
                 <textarea
                   {...register('notes')}
                   rows={3}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                   placeholder="Observações adicionais..."
                 />
               </div>
             </form>
           </div>
 
-          <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+          <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
             <button
               type="button"
               onClick={handleSubmit(handleFormSubmit)}

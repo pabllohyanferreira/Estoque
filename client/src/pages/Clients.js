@@ -98,14 +98,14 @@ const Clients = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Clientes</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Clientes</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Gerencie sua base de clientes
           </p>
         </div>
         <button
           onClick={() => setShowClientModal(true)}
-          className="mt-4 sm:mt-0 btn-primary btn-glow"
+          className="mt-4 sm:mt-0 btn-primary btn-glow btn-expand"
         >
           <Plus className="h-4 w-4 mr-2" />
           Novo Cliente
@@ -113,32 +113,32 @@ const Clients = () => {
       </div>
 
       {/* Filtros */}
-      <div className="bg-white shadow rounded-lg p-6">
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 transition-colors duration-200 card-expand animate-grow-in">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Buscar
             </label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Nome, email, telefone ou CPF/CNPJ..."
-                className="pl-10 block w-full border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="pl-10 block w-full border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               />
             </div>
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Tipo
             </label>
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className="block w-full border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="block w-full border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
             >
               <option value="">Todos os tipos</option>
               <option value="individual">Pessoa Física</option>
@@ -159,45 +159,45 @@ const Clients = () => {
       </div>
 
       {/* Lista de Clientes */}
-      <div className="bg-white shadow rounded-lg">
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg transition-colors duration-200 card-expand animate-grow-in">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="spinner"></div>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+          <div>
+            <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Cliente
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Tipo
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Contato
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     CPF/CNPJ
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Ações
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {clients.map((client) => {
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {clients.map((client, index) => {
                   const TypeIcon = getTypeIcon(client.type);
                   return (
-                    <tr key={client.id} className="hover:bg-gray-50">
+                    <tr key={client.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors table-row-expand" style={{ animationDelay: `${index * 50}ms` }}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <TypeIcon className="h-8 w-8 text-gray-400 mr-3" />
+                          <TypeIcon className="h-8 w-8 text-gray-400 dark:text-gray-500 mr-3" />
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{client.name}</div>
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">{client.name}</div>
                             {client.address && (
-                              <div className="text-sm text-gray-500">{client.address}</div>
+                              <div className="text-sm text-gray-500 dark:text-gray-400">{client.address}</div>
                             )}
                           </div>
                         </div>
@@ -205,8 +205,8 @@ const Clients = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                           client.type === 'individual' 
-                            ? 'bg-blue-100 text-blue-800' 
-                            : 'bg-green-100 text-green-800'
+                            ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200' 
+                            : 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200'
                         }`}>
                           {getTypeLabel(client.type)}
                         </span>
@@ -214,20 +214,20 @@ const Clients = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="space-y-1">
                           {client.email && (
-                            <div className="flex items-center text-sm text-gray-500">
+                            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                               <Mail className="h-4 w-4 mr-1" />
                               {client.email}
                             </div>
                           )}
                           {client.phone && (
-                            <div className="flex items-center text-sm text-gray-500">
+                            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                               <Phone className="h-4 w-4 mr-1" />
                               {client.phone}
                             </div>
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         {client.cpf_cnpj || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -258,9 +258,9 @@ const Clients = () => {
         
         {!loading && clients.length === 0 && (
           <div className="text-center py-12">
-            <Users className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhum cliente encontrado</h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <Users className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">Nenhum cliente encontrado</h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Comece criando seu primeiro cliente.
             </p>
           </div>

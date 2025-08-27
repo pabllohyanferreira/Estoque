@@ -26,7 +26,7 @@
 
   /* Botão secundário com animação */
   .btn-secondary {
-    @apply inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-md active:scale-95;
+    @apply inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 ease-in-out transform hover:scale-105 hover:shadow-md active:scale-95;
   }
 
   /* Botão de ação (ícones) com animação */
@@ -123,6 +123,29 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #f8fafc;
+  transition: background-color 0.2s ease-in-out;
+  zoom: 108%;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  position: fixed;
+}
+
+html {
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* Modo escuro para o body */
+body.dark {
+  background-color: #111827;
 }
 
 code {
@@ -130,20 +153,180 @@ code {
     monospace;
 }
 
-/* Custom scrollbar */
+/* Remover barras de rolagem */
 ::-webkit-scrollbar {
-  width: 6px;
+  display: none;
 }
 
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
+* {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
 }
 
-::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
+/* Para elementos que precisam de rolagem interna */
+.scrollable-content {
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+.scrollable-content::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Animações de crescimento suave */
+@keyframes growIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes expandWidth {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+  to {
+    width: 100%;
+    opacity: 1;
+  }
+}
+
+@keyframes expandHeight {
+  from {
+    height: 0;
+    opacity: 0;
+    overflow: hidden;
+  }
+  to {
+    height: auto;
+    opacity: 1;
+    overflow: visible;
+  }
+}
+
+/* Classes utilitárias para animações */
+.animate-grow-in {
+  animation: growIn 0.4s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideInUp 0.3s ease-out forwards;
+}
+
+.animate-expand-width {
+  animation: expandWidth 0.5s ease-out forwards;
+}
+
+.animate-expand-height {
+  animation: expandHeight 0.4s ease-out forwards;
+}
+
+/* Transições suaves para mudanças de tamanho */
+.transition-size {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-size-slow {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-size-fast {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Animações para cards e containers */
+.card-expand {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-expand:hover {
+  transform: scale(1.02);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Animações para modais */
+.modal-expand {
+  animation: growIn 0.3s ease-out forwards;
+}
+
+/* Animações para tabelas */
+.table-row-expand {
+  transition: all 0.2s ease-out;
+}
+
+.table-row-expand:hover {
+  transform: scale(1.01);
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+/* Animações para listas */
+.list-item-expand {
+  transition: all 0.2s ease-out;
+}
+
+.list-item-expand:hover {
+  transform: translateX(5px);
+  padding-left: 1.5rem;
+}
+
+/* Animações para botões */
+.btn-expand {
+  transition: all 0.2s ease-out;
+}
+
+.btn-expand:hover {
+  transform: scale(1.05);
+}
+
+.btn-expand:active {
+  transform: scale(0.95);
+}
+
+/* Animações para inputs */
+.input-expand {
+  transition: all 0.2s ease-out;
+}
+
+.input-expand:focus {
+  transform: scale(1.02);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Animações para loading */
+.loading-expand {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Animações para notificações */
+.notification-expand {
+  animation: slideInUp 0.3s ease-out forwards;
+}
+
+/* Animações para dropdowns */
+.dropdown-expand {
+  animation: expandHeight 0.3s ease-out forwards;
+  transform-origin: top;
+}
+
+/* Animações para tooltips */
+.tooltip-expand {
+  animation: growIn 0.2s ease-out forwards;
+  transform-origin: bottom center;
 } 
