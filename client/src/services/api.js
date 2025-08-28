@@ -18,29 +18,21 @@ api.interceptors.response.use(
   }
 );
 
+
+
 // Serviços para Itens
 export const itemsAPI = {
   getAll: (params = {}) => api.get('/items', { params }),
   getById: (id) => api.get(`/items/${id}`),
   create: (data) => {
-    // Se data é FormData, não definir Content-Type (deixar o browser definir)
     if (data instanceof FormData) {
-      return api.post('/items', data, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      return api.post('/items', data);
     }
     return api.post('/items', data);
   },
   update: (id, data) => {
-    // Se data é FormData, não definir Content-Type (deixar o browser definir)
     if (data instanceof FormData) {
-      return api.put(`/items/${id}`, data, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      return api.put(`/items/${id}`, data);
     }
     return api.put(`/items/${id}`, data);
   },

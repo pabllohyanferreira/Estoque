@@ -21,10 +21,18 @@ function initializeDatabase() {
       unit TEXT DEFAULT 'un',
       barcode TEXT,
       supplier TEXT,
+      image_data BLOB,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // Adicionar coluna image_data se não existir (com tratamento de erro)
+  db.run(`ALTER TABLE items ADD COLUMN image_data BLOB`, (err) => {
+    if (err && !err.message.includes('duplicate column name')) {
+      console.error('Erro ao adicionar coluna image_data:', err.message);
+    }
+  });
 
   // Tabela de Clientes
   db.run(`

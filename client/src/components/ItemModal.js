@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { X, Upload, Image } from 'lucide-react';
 
+
 const ItemModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
@@ -24,34 +25,41 @@ const ItemModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
           barcode: item.barcode || '',
           supplier: item.supplier || ''
         });
-        // Carregar imagem existente se houver
-        if (item.image_url) {
-          setImagePreview(item.image_url);
-        } else {
+                     // Carregar imagem existente se houver
+             if (item.image_data) {
+               setImagePreview(item.image_data);
+             } else {
+               setImagePreview(null);
+             }
+              } else {
+          // Criação
+          reset({
+            name: '',
+            description: '',
+            category: '',
+            price: '',
+            cost: '',
+            quantity: 0,
+            min_quantity: 0,
+            unit: 'un',
+            barcode: '',
+            supplier: ''
+          });
           setImagePreview(null);
+          setSelectedImage(null);
+          
+          // Resetar o input de arquivo
+          const fileInput = document.getElementById('image-upload');
+          if (fileInput) {
+            fileInput.value = '';
+          }
         }
-      } else {
-        // Criação
-        reset({
-          name: '',
-          description: '',
-          category: '',
-          price: '',
-          cost: '',
-          quantity: 0,
-          min_quantity: 0,
-          unit: 'un',
-          barcode: '',
-          supplier: ''
-        });
-        setImagePreview(null);
-        setSelectedImage(null);
-      }
     }
   }, [isOpen, item, reset]);
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
+    
     if (file) {
       // Validar tipo de arquivo
       if (!file.type.startsWith('image/')) {
@@ -73,6 +81,9 @@ const ItemModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
         setImagePreview(e.target.result);
       };
       reader.readAsDataURL(file);
+    } else {
+      setSelectedImage(null);
+      setImagePreview(null);
     }
   };
 
@@ -81,18 +92,17 @@ const ItemModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
     setImagePreview(null);
   };
 
-  const handleFormSubmit = async (data) => {
+    const handleFormSubmit = async (data) => {
     try {
       setIsSubmitting(true);
-      
-      // Criar FormData para enviar imagem
+
       const formData = new FormData();
-      
+
       // Adicionar dados do formulário
       Object.keys(data).forEach(key => {
         formData.append(key, data[key]);
       });
-      
+
       // Adicionar imagem se selecionada
       if (selectedImage) {
         formData.append('image', selectedImage);
@@ -164,11 +174,16 @@ const ItemModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
                     
                     {/* Upload */}
                     <div className="flex-1">
-                      <label className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                      <label 
+                        htmlFor="image-upload" 
+                        className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+
+                      >
                         <Upload className="h-4 w-4 mr-2" />
                         {imagePreview ? 'Alterar Imagem' : 'Selecionar Imagem'}
                       </label>
                       <input
+                        id="image-upload"
                         type="file"
                         accept="image/*"
                         onChange={handleImageChange}

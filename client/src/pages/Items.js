@@ -6,6 +6,7 @@ import { formatCurrency } from '../utils/formatters';
 import ItemModal from '../components/ItemModal';
 import StockModal from '../components/StockModal';
 import ConfirmModal from '../components/ConfirmModal';
+import ProductImage from '../components/ProductImage';
 
 const Items = () => {
   const [items, setItems] = useState([]);
@@ -255,15 +256,7 @@ const Items = () => {
                   <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors table-row-expand" style={{ animationDelay: `${index * 50}ms` }}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        {item.image_url ? (
-                          <img
-                            src={item.image_url}
-                            alt={item.name}
-                            className="h-12 w-12 object-cover rounded-lg mr-3 border border-gray-200 dark:border-gray-600"
-                          />
-                        ) : (
-                          <Package className="h-8 w-8 text-gray-400 dark:text-gray-500 mr-3" />
-                        )}
+                        <ProductImage imageData={item.image_data} alt={item.name} />
                         <div>
                           <div className="text-sm font-medium text-gray-900 dark:text-white">{item.name}</div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">{item.description}</div>

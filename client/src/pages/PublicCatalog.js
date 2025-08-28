@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Package } from 'lucide-react';
 import { itemsAPI } from '../services/api';
 import { formatCurrency } from '../utils/formatters';
+import ProductImage from '../components/ProductImage';
 
 const PublicCatalog = () => {
   const [items, setItems] = useState([]);
@@ -68,15 +69,12 @@ const PublicCatalog = () => {
                 return (
                   <div key={item.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-600 card-expand animate-grow-in">
                                       <div className="flex items-center mb-3">
-                    {item.image_url ? (
-                      <img
-                        src={item.image_url}
-                        alt={item.name}
-                        className="h-16 w-16 object-cover rounded-lg mr-3 border border-gray-200 dark:border-gray-600"
-                      />
-                    ) : (
-                      <Package className="h-8 w-8 text-blue-600 dark:text-blue-400 mr-3" />
-                    )}
+                    <ProductImage 
+                      imageData={item.image_data} 
+                      alt={item.name}
+                      className="h-16 w-16 object-cover rounded-lg mr-3 border border-gray-200 dark:border-gray-600"
+                      fallbackClassName="h-8 w-8 text-blue-600 dark:text-blue-400 mr-3"
+                    />
                     <div className="flex-1">
                       <h3 className="text-lg font-medium text-gray-900 dark:text-white truncate">
                         {item.name}
