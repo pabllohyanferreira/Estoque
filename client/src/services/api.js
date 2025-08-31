@@ -11,9 +11,12 @@ const api = axios.create({
 
 // Interceptor para tratamento de erros
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('API Response:', response.config.method?.toUpperCase(), response.config.url, response.status);
+    return response;
+  },
   (error) => {
-    console.error('API Error:', error);
+    console.error('API Error:', error.config?.method?.toUpperCase(), error.config?.url, error.response?.status, error.response?.data);
     return Promise.reject(error);
   }
 );
@@ -73,6 +76,24 @@ export const accountsReceivableAPI = {
 // Serviços para Estatísticas
 export const statsAPI = {
   getAccountsStats: () => api.get('/accounts/stats'),
+};
+
+// Serviços para Movimentações de Estoque
+export const stockMovementsAPI = {
+  getAll: () => api.get('/stock-movements'),
+  getByItem: (itemId) => api.get(`/stock-movements/item/${itemId}`),
+  create: (data) => api.post('/stock-movements', data),
+  getSummary: (params) => api.get('/stock-movements/summary', { params })
+};
+
+// Serviços para Vendas
+export const salesAPI = {
+  getAll: (params = {}) => api.get('/sales', { params }),
+  getById: (id) => api.get(`/sales/${id}`),
+  create: (data) => api.post('/sales', data),
+  updateStatus: (id, status) => api.patch(`/sales/${id}/status`, { status }),
+  delete: (id) => api.delete(`/sales/${id}`),
+  getStats: (params = {}) => api.get('/sales/stats/summary', { params })
 };
 
 export default api; 

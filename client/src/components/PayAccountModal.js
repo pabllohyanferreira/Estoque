@@ -55,7 +55,7 @@ const PayAccountModal = ({ isOpen, onClose, onConfirm, account, type }) => {
             <button
               type="button"
               onClick={onConfirm}
-              className="w-full btn-primary btn-glow sm:ml-3 sm:w-auto sm:text-sm"
+                              className="w-full btn-primary sm:ml-3 sm:w-auto sm:text-sm"
             >
               Confirmar Pagamento
             </button>

@@ -10,6 +10,8 @@ import AccountsPayable from './pages/AccountsPayable';
 import AccountsReceivable from './pages/AccountsReceivable';
 import Catalog from './pages/Catalog';
 import PublicCatalog from './pages/PublicCatalog';
+import Reports from './pages/Reports';
+import Sales from './pages/Sales';
 import './App.css';
 
 function App() {
@@ -28,6 +30,8 @@ function App() {
                   <Route path="/accounts-payable" element={<AccountsPayable />} />
                   <Route path="/accounts-receivable" element={<AccountsReceivable />} />
                   <Route path="/catalog" element={<Catalog />} />
+                  <Route path="/reports" element={<Reports />} />
+                  <Route path="/sales" element={<Sales />} />
                 </Routes>
               </Layout>
             } />

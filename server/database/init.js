@@ -15,10 +15,12 @@ function initializeDatabase() {
       description TEXT,
       category TEXT,
       price REAL NOT NULL,
-      cost REAL NOT NULL,
+      cost REAL DEFAULT 0,
+      installments INTEGER DEFAULT 1,
+      installment_value REAL,
       quantity INTEGER DEFAULT 0,
       min_quantity INTEGER DEFAULT 0,
-      unit TEXT DEFAULT 'un',
+      unit TEXT DEFAULT 'unidade',
       barcode TEXT,
       supplier TEXT,
       image_data BLOB,
@@ -27,11 +29,22 @@ function initializeDatabase() {
     )
   `);
 
-  // Adicionar coluna image_data se não existir (com tratamento de erro)
-  db.run(`ALTER TABLE items ADD COLUMN image_data BLOB`, (err) => {
-    if (err && !err.message.includes('duplicate column name')) {
-      console.error('Erro ao adicionar coluna image_data:', err.message);
-    }
+  // Adicionar colunas se não existirem (com tratamento de erro)
+  const columnsToAdd = [
+    { name: 'image_data', type: 'BLOB' },
+    { name: 'installments', type: 'INTEGER DEFAULT 1' },
+    { name: 'installment_value', type: 'REAL' },
+    { name: 'cost', type: 'REAL DEFAULT 0' }
+  ];
+
+  columnsToAdd.forEach(column => {
+    db.run(`ALTER TABLE items ADD COLUMN ${column.name} ${column.type}`, (err) => {
+      if (err && !err.message.includes('duplicate column name')) {
+        console.error(`Erro ao adicionar coluna ${column.name}:`, err.message);
+      } else if (!err) {
+        console.log(`Coluna ${column.name} adicionada com sucesso`);
+      }
+    });
   });
 
   // Tabela de Clientes
@@ -74,6 +87,7 @@ function initializeDatabase() {
       due_date DATE NOT NULL,
       status TEXT DEFAULT 'pending',
       client_id INTEGER,
+      client_name TEXT,
       category TEXT,
       notes TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -81,6 +95,15 @@ function initializeDatabase() {
       FOREIGN KEY (client_id) REFERENCES clients (id)
     )
   `);
+
+  // Adicionar coluna client_name se não existir
+  db.run(`ALTER TABLE accounts_receivable ADD COLUMN client_name TEXT`, (err) => {
+    if (err && !err.message.includes('duplicate column name')) {
+      console.error('Erro ao adicionar coluna client_name:', err.message);
+    } else if (!err) {
+      console.log('Coluna client_name adicionada com sucesso');
+    }
+  });
 
   // Tabela de Movimentações de Estoque
   db.run(`

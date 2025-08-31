@@ -100,9 +100,9 @@ const Catalog = () => {
             title="Copiar link do catálogo"
           >
             {copiedLink ? (
-              <Check className="h-4 w-4 mr-2 text-green-600" />
+              <Check className="h-4 w-4 mr-2 text-green-600 icon-action" />
             ) : (
-              <Copy className="h-4 w-4 mr-2" />
+              <Copy className="h-4 w-4 mr-2 icon-action" />
             )}
             {copiedLink ? 'Copiado!' : 'Copiar Link'}
           </button>
@@ -112,7 +112,7 @@ const Catalog = () => {
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors btn-expand"
             title="Abrir em nova aba"
           >
-            <ExternalLink className="h-4 w-4 mr-2" />
+            <ExternalLink className="h-4 w-4 mr-2 icon-action" />
             Abrir Vitrine
           </button>
         </div>

@@ -104,10 +104,21 @@ router.post('/', upload.single('image'), [
     }
     return true;
   }),
-  body('cost').custom((value) => {
-    const num = parseFloat(value);
-    if (isNaN(num) || num < 0) {
-      throw new Error('Custo deve ser um número positivo');
+  body('installments').custom((value) => {
+    if (value) {
+      const num = parseInt(value);
+      if (isNaN(num) || num < 1 || num > 12) {
+        throw new Error('Número de parcelas deve ser entre 1 e 12');
+      }
+    }
+    return true;
+  }),
+  body('installment_value').custom((value) => {
+    if (value) {
+      const num = parseFloat(value);
+      if (isNaN(num) || num < 0) {
+        throw new Error('Valor da parcela deve ser um número positivo');
+      }
     }
     return true;
   }),
@@ -119,14 +130,30 @@ router.post('/', upload.single('image'), [
     return true;
   })
 ], (req, res) => {
+  console.log('=== INÍCIO DA CRIAÇÃO DE PRODUTO ===');
+  console.log('Dados recebidos:', req.body);
+  console.log('Arquivo recebido:', req.file);
+  console.log('Headers:', req.headers);
+  
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log('Erros de validação na criação:', errors.array());
+    console.log('Dados recebidos na criação:', req.body);
     return res.status(400).json({ errors: errors.array() });
   }
 
   const {
-    name, description, category, price, cost, quantity, min_quantity, unit, barcode, supplier
+    name, description, category, price, installments, installment_value, quantity, min_quantity, unit, barcode, supplier
   } = req.body;
+
+  console.log('Dados para criação do item:', {
+    name,
+    price,
+    installments,
+    installment_value,
+    quantity,
+    min_quantity
+  });
 
   // Processar imagem se enviada
   let image_data = null;
@@ -134,30 +161,72 @@ router.post('/', upload.single('image'), [
     image_data = req.file.buffer;
   }
 
+  // Converter valores para os tipos corretos
+  const priceFloat = parseFloat(price) || 0;
+  const installmentsInt = parseInt(installments) || 1;
+  const installmentValueFloat = parseFloat(installment_value) || priceFloat;
+  const quantityInt = parseInt(quantity, 10) || 0;
+  const minQuantityInt = parseInt(min_quantity, 10) || 0;
+
+  console.log('Valores convertidos para criação:', {
+    priceFloat,
+    installmentsInt,
+    installmentValueFloat,
+    quantityInt,
+    minQuantityInt
+  });
+
+  // Validação adicional
+  if (priceFloat <= 0) {
+    return res.status(400).json({ error: 'Preço deve ser maior que zero' });
+  }
+
+  if (installmentsInt < 1 || installmentsInt > 12) {
+    return res.status(400).json({ error: 'Número de parcelas deve ser entre 1 e 12' });
+  }
+
   const query = `
-    INSERT INTO items (name, description, category, price, cost, quantity, min_quantity, unit, barcode, supplier, image_data)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO items (name, description, category, price, cost, installments, installment_value, quantity, min_quantity, unit, barcode, supplier, image_data)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
-  db.run(query, [name, description, category, price, cost, quantity, min_quantity || 0, unit || 'un', barcode, supplier, image_data], function(err) {
-    if (err) {
-      return res.status(500).json({ error: 'Erro ao criar item', details: err.message });
-    }
-    
-    // Registrar movimentação inicial
-    if (quantity > 0) {
-      db.run(
-        'INSERT INTO stock_movements (item_id, type, quantity, reason) VALUES (?, ?, ?, ?)',
-        [this.lastID, 'entrada', quantity, 'Cadastro inicial']
-      );
-    }
-    
-    res.status(201).json({ 
-      id: this.lastID, 
-      message: 'Item criado com sucesso',
-      image_data: image_data ? `data:${req.file.mimetype};base64,${image_data.toString('base64')}` : null
+  console.log('Executando query de criação:', query);
+  console.log('Parâmetros da query:', [name, description, category, priceFloat, 0, installmentsInt, installmentValueFloat, quantityInt, minQuantityInt, unit || 'unidade', barcode, supplier, image_data]);
+
+  try {
+    db.run(query, [name, description, category, priceFloat, 0, installmentsInt, installmentValueFloat, quantityInt, minQuantityInt, unit || 'unidade', barcode, supplier, image_data], function(err) {
+      if (err) {
+        console.error('Erro no banco de dados ao criar item:', err);
+        return res.status(500).json({ error: 'Erro ao criar item', details: err.message });
+      }
+      
+      console.log('Item criado com sucesso, ID:', this.lastID);
+      
+      // Registrar movimentação inicial
+      if (quantityInt > 0) {
+        db.run(
+          'INSERT INTO stock_movements (item_id, type, quantity, reason) VALUES (?, ?, ?, ?)',
+          [this.lastID, 'entrada', quantityInt, 'Cadastro inicial'],
+          (movementErr) => {
+            if (movementErr) {
+              console.error('Erro ao registrar movimentação inicial:', movementErr);
+            } else {
+              console.log('Movimentação inicial registrada com sucesso');
+            }
+          }
+        );
+      }
+      
+      res.status(201).json({ 
+        id: this.lastID, 
+        message: 'Item criado com sucesso',
+        image_data: image_data ? `data:${req.file.mimetype};base64,${image_data.toString('base64')}` : null
+      });
     });
-  });
+  } catch (error) {
+    console.error('Erro geral na criação de item:', error);
+    return res.status(500).json({ error: 'Erro interno do servidor', details: error.message });
+  }
 });
 
 // Atualizar item
@@ -175,23 +244,79 @@ router.put('/:id', upload.single('image'), [
     }
     return true;
   }),
-  body('cost').custom((value) => {
-    const num = parseFloat(value);
-    if (isNaN(num) || num < 0) {
-      throw new Error('Custo deve ser um número positivo');
+  body('installments').custom((value) => {
+    if (value) {
+      const num = parseInt(value);
+      if (isNaN(num) || num < 1 || num > 12) {
+        throw new Error('Número de parcelas deve ser entre 1 e 12');
+      }
+    }
+    return true;
+  }),
+  body('installment_value').custom((value) => {
+    if (value) {
+      const num = parseFloat(value);
+      if (isNaN(num) || num < 0) {
+        throw new Error('Valor da parcela deve ser um número positivo');
+      }
     }
     return true;
   })
 ], (req, res) => {
+  console.log('=== INÍCIO DA ATUALIZAÇÃO DE PRODUTO ===');
+  console.log('ID do produto:', req.params.id);
+  console.log('Dados recebidos:', req.body);
+  console.log('Arquivo recebido:', req.file);
+  
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log('Erros de validação:', errors.array());
+    console.log('Dados recebidos:', req.body);
     return res.status(400).json({ errors: errors.array() });
   }
 
   const { id } = req.params;
   const {
-    name, description, category, price, cost, min_quantity, unit, barcode, supplier
+    name, description, category, price, installments, installment_value, min_quantity, unit, barcode, supplier
   } = req.body;
+
+  // Converter valores para os tipos corretos
+  const priceFloat = parseFloat(price);
+  const installmentsInt = parseInt(installments);
+  const installmentValueFloat = parseFloat(installment_value);
+  const minQuantityInt = parseInt(min_quantity) || 0;
+
+  console.log('Dados recebidos para atualização:', {
+    id,
+    name,
+    price: priceFloat,
+    installments: installmentsInt,
+    installment_value: installmentValueFloat,
+    min_quantity: minQuantityInt
+  });
+
+  console.log('Valores originais:', {
+    price,
+    installments,
+    installment_value,
+    min_quantity
+  });
+
+  console.log('Valores convertidos:', {
+    priceFloat,
+    installmentsInt,
+    installmentValueFloat,
+    minQuantityInt
+  });
+
+  // Validação adicional
+  if (priceFloat <= 0) {
+    return res.status(400).json({ error: 'Preço deve ser maior que zero' });
+  }
+
+  if (installmentsInt < 1 || installmentsInt > 12) {
+    return res.status(400).json({ error: 'Número de parcelas deve ser entre 1 e 12' });
+  }
 
   // Processar imagem se enviada
   let image_data = null;
@@ -206,33 +331,45 @@ router.put('/:id', upload.single('image'), [
   if (image_data) {
     query = `
       UPDATE items 
-      SET name = ?, description = ?, category = ?, price = ?, cost = ?, 
+      SET name = ?, description = ?, category = ?, price = ?, installments = ?, installment_value = ?, 
           min_quantity = ?, unit = ?, barcode = ?, supplier = ?, image_data = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `;
-    params = [name, description, category, price, cost, min_quantity || 0, unit || 'un', barcode, supplier, image_data, id];
+    params = [name, description, category, priceFloat, installmentsInt, installmentValueFloat, minQuantityInt, unit || 'unidade', barcode, supplier, image_data, id];
   } else {
     query = `
       UPDATE items 
-      SET name = ?, description = ?, category = ?, price = ?, cost = ?, 
+      SET name = ?, description = ?, category = ?, price = ?, installments = ?, installment_value = ?, 
           min_quantity = ?, unit = ?, barcode = ?, supplier = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `;
-    params = [name, description, category, price, cost, min_quantity || 0, unit || 'un', barcode, supplier, id];
+    params = [name, description, category, priceFloat, installmentsInt, installmentValueFloat, minQuantityInt, unit || 'unidade', barcode, supplier, id];
   }
 
-  db.run(query, params, function(err) {
-    if (err) {
-      return res.status(500).json({ error: 'Erro ao atualizar item', details: err.message });
-    }
-    if (this.changes === 0) {
-      return res.status(404).json({ error: 'Item não encontrado' });
-    }
-    res.json({ 
-      message: 'Item atualizado com sucesso',
-      image_data: image_data ? `data:${req.file.mimetype};base64,${image_data.toString('base64')}` : null
+  console.log('Query SQL:', query);
+  console.log('Parâmetros:', params);
+
+  try {
+    db.run(query, params, function(err) {
+      if (err) {
+        console.error('Erro no banco de dados:', err);
+        return res.status(500).json({ error: 'Erro ao atualizar item', details: err.message });
+      }
+      if (this.changes === 0) {
+        return res.status(404).json({ error: 'Item não encontrado' });
+      }
+      
+      console.log('Item atualizado com sucesso. Linhas afetadas:', this.changes);
+      
+      res.json({ 
+        message: 'Item atualizado com sucesso',
+        image_data: image_data ? `data:${req.file.mimetype};base64,${image_data.toString('base64')}` : null
+      });
     });
-  });
+  } catch (error) {
+    console.error('Erro geral na atualização de item:', error);
+    return res.status(500).json({ error: 'Erro interno do servidor', details: error.message });
+  }
 });
 
 // Deletar item
@@ -264,6 +401,17 @@ router.post('/:id/stock', [
   const { id } = req.params;
   const { quantity, type, reason } = req.body;
 
+  // Converter para números inteiros para garantir precisão
+  const quantityInt = parseInt(quantity, 10);
+
+  console.log('Atualização de estoque:', {
+    itemId: id,
+    quantity: quantity,
+    quantityInt: quantityInt,
+    type: type,
+    reason: reason
+  });
+
   db.get('SELECT quantity FROM items WHERE id = ?', [id], (err, item) => {
     if (err) {
       return res.status(500).json({ error: 'Erro ao buscar item', details: err.message });
@@ -272,7 +420,16 @@ router.post('/:id/stock', [
       return res.status(404).json({ error: 'Item não encontrado' });
     }
 
-    const newQuantity = type === 'entrada' ? item.quantity + quantity : item.quantity - quantity;
+    // Converter o estoque atual para número inteiro
+    const currentQuantity = parseInt(item.quantity, 10);
+    const newQuantity = type === 'entrada' ? currentQuantity + quantityInt : currentQuantity - quantityInt;
+    
+    console.log('Cálculo de estoque:', {
+      currentQuantity: currentQuantity,
+      quantityInt: quantityInt,
+      type: type,
+      newQuantity: newQuantity
+    });
     
     if (newQuantity < 0) {
       return res.status(400).json({ error: 'Quantidade insuficiente em estoque' });
@@ -286,8 +443,13 @@ router.post('/:id/stock', [
       // Registrar movimentação
       db.run(
         'INSERT INTO stock_movements (item_id, type, quantity, reason) VALUES (?, ?, ?, ?)',
-        [id, type, quantity, reason]
+        [id, type, quantityInt, reason]
       );
+
+      console.log('Estoque atualizado com sucesso:', {
+        itemId: id,
+        newQuantity: newQuantity
+      });
 
       res.json({ 
         message: 'Estoque atualizado com sucesso',

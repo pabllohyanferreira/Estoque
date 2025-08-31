@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Configurações globais para zoom padrão */
+html, body {
+  zoom: 100% !important;
+  font-size: 16px !important;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 /* Spinner de carregamento */
 .spinner {
   border: 4px solid #f3f3f3;
@@ -54,55 +64,75 @@
     @apply transition-all duration-200 ease-in-out transform hover:scale-110 active:scale-95;
   }
 
-  /* Efeito de brilho no hover */
-  .btn-glow {
-    @apply relative overflow-hidden transition-all duration-300 ease-in-out;
+  /* Animação de hover para ícones com subida suave */
+  .icon-hover {
+    @apply transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-110 active:scale-95;
   }
 
-  .btn-glow::before {
-    content: '';
-    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 transition-opacity duration-300 ease-in-out;
-    transform: translateX(-100%);
+  /* Animação de hover para ícones de ação (editar, deletar, etc.) */
+  .icon-action {
+    @apply transition-all duration-200 ease-in-out transform hover:-translate-y-0.5 hover:scale-110 active:scale-95;
   }
 
-  .btn-glow:hover::before {
-    @apply opacity-20;
-    transform: translateX(100%);
+  /* Animação de hover para ícones de navegação */
+  .icon-nav {
+    @apply transition-all duration-200 ease-in-out transform hover:-translate-y-0.5 hover:scale-105 active:scale-95;
   }
 
-  /* Botão com borda animada */
-  .btn-border-animated {
-    @apply relative overflow-hidden transition-all duration-300 ease-in-out;
+  /* Animação de hover para ícones de botões */
+  .icon-button {
+    @apply transition-all duration-200 ease-in-out transform hover:-translate-y-0.5 hover:scale-110 active:scale-95;
   }
 
-  .btn-border-animated::after {
-    content: '';
-    @apply absolute inset-0 border-2 border-blue-500 rounded-md opacity-0 transition-all duration-300 ease-in-out;
-    transform: scale(0.8);
+  /* Animação de hover para ícones de status */
+  .icon-status {
+    @apply transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-110 active:scale-95;
   }
 
-  .btn-border-animated:hover::after {
-    @apply opacity-100;
-    transform: scale(1);
+  /* Efeitos especiais para navegação */
+  .nav-item-active {
+    @apply bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25 border border-blue-400/20;
   }
 
-  /* Efeito de pulso no hover */
-  .btn-pulse {
-    @apply transition-all duration-300 ease-in-out;
+  .nav-item-hover {
+    @apply hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 dark:hover:from-gray-700 dark:hover:to-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 border border-transparent hover:border-blue-200 dark:hover:border-blue-800;
   }
 
-  .btn-pulse:hover {
-    animation: pulse 1s infinite;
+  /* Efeito de brilho para elementos ativos */
+  .glow-effect {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
   }
 
-  @keyframes pulse {
-    0%, 100% {
-      transform: scale(1);
+  /* Animação de entrada para itens de navegação */
+  .nav-item-enter {
+    animation: slideInFromLeft 0.3s ease-out;
+  }
+
+  @keyframes slideInFromLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
     }
-    50% {
-      transform: scale(1.05);
+    to {
+      opacity: 1;
+      transform: translateX(0);
     }
   }
+
+  /* Efeito de profundidade para cards */
+  .depth-card {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  /* Gradiente de texto personalizado */
+  .text-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+
 
   /* Botão com gradiente animado */
   .btn-gradient {
@@ -124,15 +154,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: #f8fafc;
   transition: background-color 0.2s ease-in-out;
-  zoom: 108%;
-  overflow: hidden;
+
   height: 100vh;
   width: 100vw;
-  position: fixed;
 }
 
 html {
-  overflow: hidden;
   height: 100%;
   width: 100%;
 }
@@ -140,7 +167,6 @@ html {
 #root {
   height: 100vh;
   width: 100vw;
-  overflow: hidden;
 }
 
 /* Modo escuro para o body */
@@ -174,159 +200,257 @@ code {
   display: none; /* Chrome, Safari, Opera */
 }
 
-/* Animações de crescimento suave */
-@keyframes growIn {
-  from {
-    opacity: 0;
-    transform: scale(0.8) translateY(20px);
+
+
+
+
+
+
+/* ===== CONFIGURAÇÕES DE RESPONSIVIDADE E ROLAGEM ===== */
+
+
+
+/* Configurações de rolagem personalizada */
+.scrollable-content {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+/* Estilização da barra de rolagem para Webkit (Chrome, Safari, Edge) */
+.scrollable-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollable-content::-webkit-scrollbar-track {
+  background: #f7fafc;
+  border-radius: 4px;
+}
+
+.scrollable-content::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.scrollable-content::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+/* Estilização da barra de rolagem para modo escuro */
+.dark .scrollable-content {
+  scrollbar-color: #4a5568 #2d3748;
+}
+
+.dark .scrollable-content::-webkit-scrollbar-track {
+  background: #2d3748;
+}
+
+.dark .scrollable-content::-webkit-scrollbar-thumb {
+  background: #4a5568;
+}
+
+.dark .scrollable-content::-webkit-scrollbar-thumb:hover {
+  background: #718096;
+}
+
+/* Container principal com rolagem */
+.main-content {
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1rem;
+}
+
+/* Container de página com rolagem adequada */
+.page-container {
+  min-height: 100%;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-content {
+  flex: 1;
+  overflow-y: visible;
+  overflow-x: hidden;
+}
+
+/* Layout principal com sidebar fixa e conteúdo rolável */
+.main-layout {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+}
+
+.sidebar-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  overflow: hidden;
+  z-index: 40;
+  width: 16rem; /* 256px - md:w-64 */
+}
+
+.content-scrollable {
+  flex: 1;
+  height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Classes para rolagem automática */
+.content-needs-scroll {
+  overflow-y: auto;
+}
+
+.content-no-scroll {
+  overflow-y: hidden;
+}
+
+/* Wrapper de rolagem automática */
+.auto-scroll-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
+.auto-scroll-wrapper[data-needs-scroll="true"] {
+  overflow-y: auto;
+}
+
+.auto-scroll-wrapper[data-needs-scroll="false"] {
+  overflow-y: hidden;
+}
+
+/* Scrollbar personalizada para sidebar */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 2px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+.dark .scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Garantir que a seção de suporte seja sempre visível */
+.sidebar-support-section {
+  min-height: 160px;
+  background: inherit;
+  border-top: 1px solid;
+  border-color: rgb(229 231 235);
+  background: linear-gradient(to bottom, transparent, rgba(59, 130, 246, 0.02));
+}
+
+.dark .sidebar-support-section {
+  background: linear-gradient(to bottom, transparent, rgba(59, 130, 246, 0.05));
+}
+
+.dark .sidebar-support-section {
+  border-color: rgb(55 65 81);
+}
+
+/* Tabelas com rolagem horizontal */
+.table-container {
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #f7fafc;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+/* Cards com altura máxima e rolagem */
+.card-scrollable {
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Lista com rolagem */
+.list-scrollable {
+  max-height: 60vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Grid responsivo */
+.responsive-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+/* Flex responsivo */
+.responsive-flex {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* Container de página responsivo */
+.page-container {
+  min-height: 100vh;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Ajustes para telas pequenas */
+@media (max-width: 768px) {
+  .page-container {
+    padding: 0.5rem;
   }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
+  
+  .responsive-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .responsive-flex {
+    flex-direction: column;
   }
 }
 
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
+/* Ajustes para telas muito pequenas */
+@media (max-width: 480px) {
+  .page-container {
+    padding: 0.5rem;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes expandWidth {
-  from {
-    width: 0;
-    opacity: 0;
-  }
-  to {
-    width: 100%;
-    opacity: 1;
-  }
-}
-
-@keyframes expandHeight {
-  from {
-    height: 0;
-    opacity: 0;
-    overflow: hidden;
-  }
-  to {
-    height: auto;
-    opacity: 1;
-    overflow: visible;
-  }
-}
-
-/* Classes utilitárias para animações */
-.animate-grow-in {
-  animation: growIn 0.4s ease-out forwards;
-}
-
-.animate-slide-up {
-  animation: slideInUp 0.3s ease-out forwards;
-}
-
-.animate-expand-width {
-  animation: expandWidth 0.5s ease-out forwards;
-}
-
-.animate-expand-height {
-  animation: expandHeight 0.4s ease-out forwards;
-}
-
-/* Transições suaves para mudanças de tamanho */
-.transition-size {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.transition-size-slow {
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.transition-size-fast {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Animações para cards e containers */
-.card-expand {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.card-expand:hover {
-  transform: scale(1.02);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-/* Animações para modais */
-.modal-expand {
-  animation: growIn 0.3s ease-out forwards;
-}
-
-/* Animações para tabelas */
-.table-row-expand {
-  transition: all 0.2s ease-out;
-}
-
-.table-row-expand:hover {
-  transform: scale(1.01);
-  background-color: rgba(59, 130, 246, 0.05);
-}
-
-/* Animações para listas */
-.list-item-expand {
-  transition: all 0.2s ease-out;
-}
-
-.list-item-expand:hover {
-  transform: translateX(5px);
-  padding-left: 1.5rem;
-}
-
-/* Animações para botões */
-.btn-expand {
-  transition: all 0.2s ease-out;
-}
-
-.btn-expand:hover {
-  transform: scale(1.05);
-}
-
-.btn-expand:active {
-  transform: scale(0.95);
-}
-
-/* Animações para inputs */
-.input-expand {
-  transition: all 0.2s ease-out;
-}
-
-.input-expand:focus {
-  transform: scale(1.02);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-/* Animações para loading */
-.loading-expand {
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-/* Animações para notificações */
-.notification-expand {
-  animation: slideInUp 0.3s ease-out forwards;
-}
-
-/* Animações para dropdowns */
-.dropdown-expand {
-  animation: expandHeight 0.3s ease-out forwards;
-  transform-origin: top;
-}
-
-/* Animações para tooltips */
-.tooltip-expand {
-  animation: growIn 0.2s ease-out forwards;
-  transform-origin: bottom center;
 } 

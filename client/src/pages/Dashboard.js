@@ -96,7 +96,7 @@ const Dashboard = () => {
       <div className="p-5">
         <div className="flex items-center">
           <div className="flex-shrink-0">
-            <Icon className={`h-6 w-6 ${color}`} />
+            <Icon className={`h-6 w-6 ${color} icon-status`} />
           </div>
           <div className="ml-5 w-0 flex-1">
             <dl>
@@ -225,7 +225,7 @@ const Dashboard = () => {
                         className="text-green-600 hover:text-green-900 btn-action"
                         title="Marcar como Paga"
                       >
-                        <CheckCircle className="h-4 w-4" />
+                        <CheckCircle className="h-4 w-4 icon-action" />
                       </button>
                     </div>
                   </div>
@@ -273,7 +273,7 @@ const Dashboard = () => {
                         className="text-green-600 hover:text-green-900 btn-action"
                         title="Marcar como Paga"
                       >
-                        <CheckCircle className="h-4 w-4" />
+                        <CheckCircle className="h-4 w-4 icon-action" />
                       </button>
                     </div>
                   </div>

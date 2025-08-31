@@ -32,7 +32,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }) => {
           <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
             <button
               type="button"
-              className="w-full btn-danger btn-pulse sm:ml-3 sm:w-auto sm:text-sm"
+                              className="w-full btn-danger sm:ml-3 sm:w-auto sm:text-sm"
               onClick={onConfirm}
             >
               Confirmar

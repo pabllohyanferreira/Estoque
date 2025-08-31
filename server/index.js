@@ -5,6 +5,8 @@ const { initializeDatabase } = require('./database/init');
 const itemRoutes = require('./routes/items');
 const clientRoutes = require('./routes/clients');
 const accountRoutes = require('./routes/accounts');
+const stockMovementRoutes = require('./routes/stockMovements');
+const salesRoutes = require('./routes/sales');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -26,8 +28,8 @@ initializeDatabase();
 app.use('/api/items', itemRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/accounts', accountRoutes);
-
-
+app.use('/api/stock-movements', stockMovementRoutes);
+app.use('/api/sales', salesRoutes);
 
 // Servir arquivos estáticos do React em produção
 if (process.env.NODE_ENV === 'production') {
