@@ -1,34 +1,28 @@
 @echo off
 echo ========================================
-echo INICIANDO SISTEMA DE ESTOQUE
+echo    LOJIFY - Sistema de Estoque
 echo ========================================
 echo.
 
-echo 1. Parando processos Node.js existentes...
-taskkill /f /im node.exe >nul 2>&1
-
-echo 2. Aguardando 3 segundos...
-timeout /t 3 /nobreak >nul
-
-echo 3. Iniciando servidor backend...
+echo Iniciando servidor...
 cd server
-start "Backend" cmd /k "npm run dev"
+start "Lojify Server" cmd /k "node start.js"
 
-echo 4. Aguardando 5 segundos...
-timeout /t 5 /nobreak >nul
+echo.
+echo Aguardando servidor inicializar...
+timeout /t 3 /nobreak > nul
 
-echo 5. Iniciando frontend...
-cd ../client
-start "Frontend" cmd /k "npm start"
+echo.
+echo Iniciando cliente...
+cd ..\client
+start "Lojify Client" cmd /k "npm start"
 
 echo.
 echo ========================================
-echo SISTEMA INICIADO!
+echo Sistema iniciado com sucesso!
+echo.
+echo Servidor: http://localhost:5000
+echo Cliente:  http://localhost:3000
 echo ========================================
 echo.
-echo Backend: http://localhost:5000
-echo Frontend: http://localhost:3000
-echo.
-echo Aguarde alguns segundos para os servidores carregarem...
-echo.
-pause 
+pause

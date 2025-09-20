@@ -189,7 +189,7 @@ const addFooter = (doc) => {
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(colors.secondary);
-  doc.text('Sistema de Estoque EzStock - Relatório Gerado Automaticamente', 20, footerY);
+  doc.text('Sistema de Estoque Lojify - Relatório Gerado Automaticamente', 20, footerY);
   
   // Número da página
   const pageNumber = doc.internal.getNumberOfPages();
@@ -252,7 +252,7 @@ export const generateAdvancedPDF = async (movements, summary, period) => {
   currentY = addMovementsTable(doc, movements, currentY + 10);
   
   // Adicionar análise de tendências
-  currentY = addTrendAnalysis(doc, movements, currentY + 10);
+  // currentY = addTrendAnalysis(doc, movements, currentY + 10);
   
   // Adicionar rodapé
   addFooter(doc);

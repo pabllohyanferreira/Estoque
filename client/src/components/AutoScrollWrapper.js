@@ -29,7 +29,7 @@ const AutoScrollWrapper = ({ children, className = '', onScrollChange }) => {
     return () => {
       observer.disconnect();
     };
-  }, [forceCheck]);
+  }, [forceCheck, contentRef]);
 
   return (
     <div 

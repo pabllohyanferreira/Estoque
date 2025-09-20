@@ -5,8 +5,8 @@ import { formatCurrency } from '../utils/formatters';
 const PayAccountModal = ({ isOpen, onClose, onConfirm, account, type }) => {
   if (!isOpen) return null;
 
-  const accountType = type === 'payable' ? 'a pagar' : 'a receber';
-  const actionType = type === 'payable' ? 'pagar' : 'receber';
+  // const accountType = type === 'payable' ? 'a pagar' : 'a receber';
+  // const actionType = type === 'payable' ? 'pagar' : 'receber';
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">

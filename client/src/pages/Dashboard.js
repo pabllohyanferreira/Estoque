@@ -5,7 +5,6 @@ import {
   CreditCard, 
   Receipt, 
   AlertTriangle,
-  Calendar,
   CheckCircle
 } from 'lucide-react';
 import { itemsAPI, clientsAPI, statsAPI, accountsPayableAPI, accountsReceivableAPI } from '../services/api';
@@ -126,7 +125,7 @@ const Dashboard = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Visão Geral</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Visão geral do seu sistema de estoque
         </p>

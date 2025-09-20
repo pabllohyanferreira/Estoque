@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Package, Search, Filter, ExternalLink, Copy, Check } from 'lucide-react';
 import { itemsAPI } from '../services/api';
 import toast from 'react-hot-toast';
@@ -13,12 +13,7 @@ const Catalog = () => {
   const [categories, setCategories] = useState([]);
   const [copiedLink, setCopiedLink] = useState(false);
 
-  useEffect(() => {
-    loadItems();
-    loadCategories();
-  }, []);
-
-  const loadItems = async () => {
+  const loadItems = useCallback(async () => {
     try {
       setLoading(true);
       const params = {};
@@ -36,16 +31,21 @@ const Catalog = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm, selectedCategory]);
 
-  const loadCategories = async () => {
+  const loadCategories = useCallback(async () => {
     try {
       const response = await itemsAPI.getCategories();
       setCategories(response.data);
     } catch (error) {
       console.error('Erro ao carregar categorias:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadItems();
+    loadCategories();
+  }, [loadItems, loadCategories]);
 
   const handleSearch = () => {
     loadItems();

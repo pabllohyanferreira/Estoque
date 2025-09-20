@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Search, Filter, Edit, Trash2, Package, AlertTriangle } from 'lucide-react';
 import { itemsAPI } from '../services/api';
 import toast from 'react-hot-toast';
@@ -21,12 +21,7 @@ const Items = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
 
-  useEffect(() => {
-    loadItems();
-    loadCategories();
-  }, []);
-
-  const loadItems = async () => {
+  const loadItems = useCallback(async () => {
     try {
       setLoading(true);
       const params = {};
@@ -43,16 +38,21 @@ const Items = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm, selectedCategory, showLowStockOnly]);
 
-  const loadCategories = async () => {
+  const loadCategories = useCallback(async () => {
     try {
       const response = await itemsAPI.getCategories();
       setCategories(response.data);
     } catch (error) {
       console.error('Erro ao carregar categorias:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadItems();
+    loadCategories();
+  }, [loadItems, loadCategories]);
 
   const handleCreateItem = async (itemData) => {
     try {
@@ -143,11 +143,11 @@ const Items = () => {
   };
 
 
-  const getStatusColor = (item) => {
-    if (item.quantity <= item.min_quantity) return 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200';
-    if (item.quantity <= item.min_quantity * 1.5) return 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200';
-    return 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200';
-  };
+  // const getStatusColor = (item) => {
+  //   if (item.quantity <= item.min_quantity) return 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200';
+  //   if (item.quantity <= item.min_quantity * 1.5) return 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200';
+  //   return 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200';
+  // };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-6">

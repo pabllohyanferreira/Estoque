@@ -3,7 +3,7 @@ import { Package } from 'lucide-react';
 
 const ProductImage = ({ imageData, alt, className = "h-12 w-12 object-cover rounded-lg mr-3 border border-gray-200 dark:border-gray-600", fallbackClassName = "h-8 w-8 text-gray-400 dark:text-gray-500 mr-3" }) => {
   const [imageError, setImageError] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
+  // const [imageLoaded, setImageLoaded] = useState(false);
 
   if (!imageData || imageError) {
     return <Package className={fallbackClassName} />;
@@ -20,7 +20,7 @@ const ProductImage = ({ imageData, alt, className = "h-12 w-12 object-cover roun
           setImageError(true);
         }}
         onLoad={() => {
-          setImageLoaded(true);
+          // setImageLoaded(true);
         }}
         style={{ display: imageError ? 'none' : 'block' }}
       />

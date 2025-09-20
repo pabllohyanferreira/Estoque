@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { X, Upload, Image, Tag, AlertCircle, Package, DollarSign, Hash, Building, FileText, Calendar, BarChart3 } from 'lucide-react';
+import { X, Upload, Image, Tag, AlertCircle, Package, DollarSign, Hash, FileText, Calendar, BarChart3 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 

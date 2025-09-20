@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Edit, Trash2, CreditCard, Calendar, Building, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Plus, Search, Filter, Edit, Trash2, CreditCard, Calendar, CheckCircle } from 'lucide-react';
 import { accountsPayableAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import { formatCurrency, formatDate, isOverdue } from '../utils/formatters';
@@ -12,7 +12,7 @@ const AccountsPayable = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
-  const [selectedSupplier, setSelectedSupplier] = useState('');
+  // const [selectedSupplier, setSelectedSupplier] = useState('');
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showPayModal, setShowPayModal] = useState(false);
@@ -20,18 +20,14 @@ const AccountsPayable = () => {
   const [editingAccount, setEditingAccount] = useState(null);
   const [accountToPay, setAccountToPay] = useState(null);
 
-  useEffect(() => {
-    loadAccounts();
-  }, []);
-
-  const loadAccounts = async () => {
+  const loadAccounts = useCallback(async () => {
     try {
       setLoading(true);
       const params = {};
       
       if (searchTerm) params.search = searchTerm;
       if (selectedStatus) params.status = selectedStatus;
-      if (selectedSupplier) params.supplier = selectedSupplier;
+      // if (selectedSupplier) params.supplier = selectedSupplier;
 
       const response = await accountsPayableAPI.getAll(params);
       setAccounts(response.data);
@@ -41,7 +37,11 @@ const AccountsPayable = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm, selectedStatus]);
+
+  useEffect(() => {
+    loadAccounts();
+  }, [loadAccounts]);
 
   const handleCreateAccount = async (accountData) => {
     try {

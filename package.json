@@ -1,19 +1,40 @@
 {
-  "name": "sistema-estoque",
+  "name": "lojify",
   "version": "1.0.0",
-  "description": "Sistema web de gerenciamento de estoque",
+  "description": "Sistema web de gerenciamento de estoque - Lojify",
   "main": "server/index.js",
   "scripts": {
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "cd server && npm run dev",
     "client": "cd client && npm start",
-    "build": "cd client && npm run build",
-    "install-all": "npm install && cd server && npm install && cd ../client && npm install"
+    "build": "node build-production.js",
+    "build:client": "cd client && npm run build",
+    "build:server": "cd server && npm run build",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install",
+    "start": "cd server && node start.js",
+    "start:prod": "cd server && NODE_ENV=production node start.js",
+    "test": "echo \"Sistema Lojify funcionando!\"",
+    "test:config": "node testar-configuracao.js",
+    "config": "node configurar-producao.js",
+    "deploy": "node build-production.js",
+    "deploy:check": "node -e \"console.log('Verificando deploy...'); require('./server/start.js')\"",
+    "clean": "rm -rf client/build client/dist server/node_modules client/node_modules node_modules",
+    "docker:build": "docker build -t lojify .",
+    "docker:run": "docker run -p 5000:5000 lojify"
   },
-  "keywords": ["estoque", "gerenciamento", "web", "react", "node"],
+  "keywords": [
+    "estoque",
+    "gerenciamento",
+    "web",
+    "react",
+    "node"
+  ],
   "author": "Seu Nome",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "axios": "^1.12.2"
   }
-} 
+}

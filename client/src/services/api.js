@@ -12,11 +12,23 @@ const api = axios.create({
 // Interceptor para tratamento de erros
 api.interceptors.response.use(
   (response) => {
-    console.log('API Response:', response.config.method?.toUpperCase(), response.config.url, response.status);
+    console.log('✅ API Response:', response.config.method?.toUpperCase(), response.config.url, response.status);
     return response;
   },
   (error) => {
-    console.error('API Error:', error.config?.method?.toUpperCase(), error.config?.url, error.response?.status, error.response?.data);
+    console.error('❌ API Error:', {
+      method: error.config?.method?.toUpperCase(),
+      url: error.config?.url,
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+    
+    // Tratamento específico para erros de rede
+    if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK') {
+      console.error('🔌 Erro de conexão: Servidor não está respondendo');
+    }
+    
     return Promise.reject(error);
   }
 );
@@ -94,6 +106,15 @@ export const salesAPI = {
   updateStatus: (id, status) => api.patch(`/sales/${id}/status`, { status }),
   delete: (id) => api.delete(`/sales/${id}`),
   getStats: (params = {}) => api.get('/sales/stats/summary', { params })
+};
+
+// Serviços para Links de Pagamento
+export const paymentsAPI = {
+  createLink: (data) => api.post('/payments/create-link', data),
+  getAll: (params = {}) => api.get('/payments', { params }),
+  getById: (id) => api.get(`/payments/${id}`),
+  cancel: (id) => api.patch(`/payments/${id}/cancel`),
+  getStats: (params = {}) => api.get('/payments/stats/summary', { params })
 };
 
 export default api; 

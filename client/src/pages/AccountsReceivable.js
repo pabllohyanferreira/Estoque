@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Edit, Trash2, Receipt, Calendar, Users, CheckCircle, ShoppingCart, Eye, X } from 'lucide-react';
+import { Plus, Search, Filter, Edit, Trash2, Receipt, Calendar, Users, CheckCircle, ShoppingCart, X } from 'lucide-react';
 import { accountsReceivableAPI, clientsAPI, salesAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import { formatCurrency, formatDate, isOverdue } from '../utils/formatters';
@@ -75,9 +75,9 @@ const AccountsReceivable = () => {
   };
 
   // Função para obter vendas de um cliente
-  const getClientSales = (clientId) => {
-    return sales.filter(sale => sale.client_id === clientId);
-  };
+  // const getClientSales = (clientId) => {
+  //   return sales.filter(sale => sale.client_id === clientId);
+  // };
 
   // Função para obter contas a receber de vendas parceladas
   const getSalesAccounts = (clientId) => {

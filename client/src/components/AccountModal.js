@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { X, DollarSign, Calendar, FileText, Building, User, AlertCircle, CreditCard, TrendingUp, TrendingDown } from 'lucide-react';
+import { X, DollarSign, FileText, AlertCircle, TrendingUp, TrendingDown } from 'lucide-react';
 
 const AccountModal = ({ isOpen, onClose, onSubmit, account, type, clients = [] }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);

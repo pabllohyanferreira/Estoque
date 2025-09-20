@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   ShoppingCart, 
   Plus, 
@@ -13,10 +13,11 @@ import {
   Users,
   Eye,
   Edit,
-  Filter
+  Filter,
+  CheckCircle
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/formatters';
-import { itemsAPI, clientsAPI, salesAPI } from '../services/api';
+import { itemsAPI, clientsAPI, salesAPI, paymentsAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
 const Sales = () => {
@@ -34,7 +35,7 @@ const Sales = () => {
   const [maxInstallments, setMaxInstallments] = useState(12);
   const [saleTitle, setSaleTitle] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [showProductModal, setShowProductModal] = useState(false);
+  // const [showProductModal, setShowProductModal] = useState(false);
   const [salesLoading, setSalesLoading] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedClientFilter, setSelectedClientFilter] = useState('');
@@ -43,10 +44,17 @@ const Sales = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showPaymentLinkModal, setShowPaymentLinkModal] = useState(false);
   const [selectedSale, setSelectedSale] = useState(null);
   const [editingSale, setEditingSale] = useState(null);
   const [saleDetails, setSaleDetails] = useState(null);
   const [loadingSaleDetails, setLoadingSaleDetails] = useState(false);
+  
+  // Estados para criação de link de pagamento
+  const [paymentLinkTitle, setPaymentLinkTitle] = useState('');
+  const [paymentLinkDescription, setPaymentLinkDescription] = useState('');
+  const [selectedPaymentMethods, setSelectedPaymentMethods] = useState(['pix', 'credit_card']);
+  const [expiresInDays, setExpiresInDays] = useState(7);
 
   // Filtrar itens baseado no termo de busca
   const filteredItems = items.filter(item => 
@@ -55,36 +63,14 @@ const Sales = () => {
     item.barcode?.includes(searchTerm)
   );
 
-  const paymentMethods = [
+  const salePaymentMethods = [
     { id: 'pix', name: 'PIX', icon: QrCode, color: 'text-green-600' },
     { id: 'money', name: 'Dinheiro', icon: DollarSign, color: 'text-green-600' },
     { id: 'credit_card', name: 'Cartão de Crédito', icon: CreditCard, color: 'text-blue-600' },
     { id: 'installments', name: 'Parcelado', icon: Calendar, color: 'text-purple-600' }
   ];
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const [itemsResponse, clientsResponse] = await Promise.all([
-        itemsAPI.getAll(),
-        clientsAPI.getAll()
-      ]);
-      setItems(itemsResponse.data);
-      setClients(clientsResponse.data);
-      loadSales();
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error);
-      toast.error('Erro ao carregar dados');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadSales = async () => {
+  const loadSales = useCallback(async () => {
     try {
       setSalesLoading(true);
       const params = {};
@@ -101,7 +87,30 @@ const Sales = () => {
     } finally {
       setSalesLoading(false);
     }
-  };
+  }, [searchTerm, selectedStatus, selectedClientFilter]);
+
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [itemsResponse, clientsResponse] = await Promise.all([
+        itemsAPI.getAll(),
+        clientsAPI.getAll()
+      ]);
+      setItems(itemsResponse.data);
+      setClients(clientsResponse.data);
+      loadSales();
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+      toast.error('Erro ao carregar dados');
+    } finally {
+      setLoading(false);
+    }
+  }, [loadSales]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
 
   const addItemToSale = (item) => {
     const existingItem = selectedItems.find(selected => selected.id === item.id);
@@ -356,6 +365,77 @@ const Sales = () => {
     }
   };
 
+  // Função para criar link de pagamento
+  const handleCreatePaymentLink = async (sale) => {
+    setSelectedSale(sale);
+    setPaymentLinkTitle(`Pagamento - Venda #${sale.id}`);
+    setPaymentLinkDescription(`Pagamento da venda para ${sale.client_name} no valor de ${formatCurrency(sale.total_amount)}`);
+    setShowPaymentLinkModal(true);
+  };
+
+  // Função para confirmar criação do link de pagamento
+  const confirmCreatePaymentLink = async () => {
+    if (!paymentLinkTitle.trim()) {
+      toast.error('Título é obrigatório');
+      return;
+    }
+    if (selectedPaymentMethods.length === 0) {
+      toast.error('Selecione pelo menos um método de pagamento');
+      return;
+    }
+
+    try {
+      const linkData = {
+        sale_id: selectedSale.id,
+        client_id: selectedSale.client_id,
+        client_name: selectedSale.client_name,
+        title: paymentLinkTitle,
+        description: paymentLinkDescription,
+        amount: selectedSale.total_amount,
+        payment_methods: selectedPaymentMethods,
+        expires_in_days: expiresInDays
+      };
+
+      const response = await paymentsAPI.createLink(linkData);
+      
+      toast.success('Link de pagamento criado com sucesso!');
+      setShowPaymentLinkModal(false);
+      resetPaymentLinkForm();
+      
+      // Copiar link para área de transferência
+      if (response.data.payment_url) {
+        navigator.clipboard.writeText(response.data.payment_url);
+        toast.success('Link copiado para área de transferência!');
+      }
+      
+    } catch (error) {
+      console.error('Erro ao criar link de pagamento:', error);
+      if (error.response?.data?.error) {
+        toast.error(`Erro: ${error.response.data.error}`);
+      } else {
+        toast.error('Erro ao criar link de pagamento');
+      }
+    }
+  };
+
+  // Função para resetar formulário de link de pagamento
+  const resetPaymentLinkForm = () => {
+    setPaymentLinkTitle('');
+    setPaymentLinkDescription('');
+    setSelectedPaymentMethods(['pix', 'credit_card']);
+    setExpiresInDays(7);
+    setSelectedSale(null);
+  };
+
+  // Função para alternar método de pagamento
+  const togglePaymentMethod = (methodId) => {
+    setSelectedPaymentMethods(prev => 
+      prev.includes(methodId) 
+        ? prev.filter(id => id !== methodId)
+        : [...prev, methodId]
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -539,6 +619,13 @@ const Sales = () => {
                           title="Visualizar detalhes"
                         >
                           <Eye className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => handleCreatePaymentLink(sale)}
+                          className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-all duration-200 transform hover:scale-110"
+                          title="Criar link de pagamento"
+                        >
+                          <CreditCard className="h-5 w-5" />
                         </button>
                         <button
                           onClick={() => handleEditSale(sale)}
@@ -781,7 +868,7 @@ const Sales = () => {
                           <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Método de Pagamento</h4>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
-                          {paymentMethods.map((method) => {
+                          {salePaymentMethods.map((method) => {
                             const Icon = method.icon;
                             return (
                               <button
@@ -1385,6 +1472,184 @@ const Sales = () => {
                         Cancelar
                       </button>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Criação de Link de Pagamento */}
+        {showPaymentLinkModal && selectedSale && (
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity" onClick={() => setShowPaymentLinkModal(false)}></div>
+
+              <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+
+              <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                {/* Header do Modal */}
+                <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-white bg-opacity-20 rounded-lg">
+                        <CreditCard className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-white">
+                          Criar Link de Pagamento
+                        </h3>
+                        <p className="text-green-100 text-sm">
+                          Venda #{selectedSale.id} - {selectedSale.client_name}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowPaymentLinkModal(false)}
+                      className="p-2 text-white hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
+                    >
+                      <X className="h-6 w-6" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Conteúdo do Modal */}
+                <div className="px-6 py-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Coluna Esquerda - Informações da Venda */}
+                    <div className="space-y-6">
+                      <div className="bg-gradient-to-br from-gray-50 to-slate-50 dark:from-gray-800 dark:to-slate-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Informações da Venda</h4>
+                        <div className="space-y-3 text-sm">
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">ID da Venda:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">#{selectedSale.id}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">Cliente:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">{selectedSale.client_name}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">Valor Total:</span>
+                            <p className="font-bold text-gray-900 dark:text-white">{formatCurrency(selectedSale.total_amount)}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">Método de Pagamento:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">{getPaymentMethodLabel(selectedSale.payment_method)}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">Data da Venda:</span>
+                            <p className="font-medium text-gray-900 dark:text-white">{formatDate(selectedSale.created_at)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Coluna Direita - Configuração do Link */}
+                    <div className="space-y-6">
+                      {/* Título e Descrição */}
+                      <div className="bg-gradient-to-br from-gray-50 to-slate-50 dark:from-gray-800 dark:to-slate-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Configuração do Link</h4>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                              Título *
+                            </label>
+                            <input
+                              type="text"
+                              value={paymentLinkTitle}
+                              onChange={(e) => setPaymentLinkTitle(e.target.value)}
+                              className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                              Descrição
+                            </label>
+                            <textarea
+                              value={paymentLinkDescription}
+                              onChange={(e) => setPaymentLinkDescription(e.target.value)}
+                              rows={3}
+                              className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Métodos de Pagamento */}
+                      <div className="bg-gradient-to-br from-gray-50 to-slate-50 dark:from-gray-800 dark:to-slate-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Métodos de Pagamento</h4>
+                        <div className="space-y-3">
+                          {[
+                            { id: 'pix', name: 'PIX', icon: QrCode },
+                            { id: 'credit_card', name: 'Cartão de Crédito', icon: CreditCard },
+                            { id: 'debit_card', name: 'Cartão de Débito', icon: CreditCard }
+                          ].map((methodOption) => {
+                            const Icon = methodOption.icon;
+                            return (
+                              <button
+                                key={methodOption.id}
+                                onClick={() => togglePaymentMethod(methodOption.id)}
+                                className={`w-full flex items-center justify-between p-3 border-2 rounded-xl transition-all duration-200 transform hover:scale-105 ${
+                                  selectedPaymentMethods.includes(methodOption.id)
+                                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20 shadow-lg shadow-green-500/25'
+                                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                }`}
+                              >
+                                <div className="flex items-center">
+                                  <Icon className="h-5 w-5 mr-3 text-gray-600 dark:text-gray-300" />
+                                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                    {methodOption.name}
+                                  </span>
+                                </div>
+                                {selectedPaymentMethods.includes(methodOption.id) && (
+                                  <CheckCircle className="h-5 w-5 text-green-500" />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Expiração */}
+                      <div className="bg-gradient-to-br from-gray-50 to-slate-50 dark:from-gray-800 dark:to-slate-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Expiração</h4>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Expira em (dias)
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="30"
+                            value={expiresInDays}
+                            onChange={(e) => setExpiresInDays(parseInt(e.target.value))}
+                            className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200"
+                          />
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                            O link expirará automaticamente após {expiresInDays} dias
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Botões de Ação */}
+                  <div className="mt-8 flex justify-end space-x-4">
+                    <button
+                      onClick={() => setShowPaymentLinkModal(false)}
+                      className="px-6 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={confirmCreatePaymentLink}
+                      disabled={!paymentLinkTitle.trim() || selectedPaymentMethods.length === 0}
+                      className="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-xl shadow-lg hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 flex items-center"
+                    >
+                      <CreditCard className="h-5 w-5 mr-2" />
+                      Criar Link de Pagamento
+                    </button>
                   </div>
                 </div>
               </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Calendar, 
   Download,
@@ -31,22 +31,7 @@ const Reports = () => {
 
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 
-  useEffect(() => {
-    loadMovements();
-  }, []);
-
-  useEffect(() => {
-    if (movements.length > 0) {
-      filterMovements();
-    }
-  }, [movements, selectedMonth, selectedYear, filterType]);
-
-  // Resetar página quando os filtros mudarem
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedMonth, selectedYear, filterType]);
-
-  const loadMovements = async () => {
+  const loadMovements = useCallback(async () => {
     try {
       setLoading(true);
       const response = await stockMovementsAPI.getAll();
@@ -56,9 +41,13 @@ const Reports = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const filterMovements = () => {
+  useEffect(() => {
+    loadMovements();
+  }, [loadMovements]);
+
+  const filterMovements = useCallback(() => {
     let filtered = movements.filter(movement => {
       const movementDate = new Date(movement.created_at);
       const matchesMonth = movementDate.getMonth() === selectedMonth;
@@ -71,7 +60,18 @@ const Reports = () => {
     });
 
     setFilteredMovements(filtered);
-  };
+  }, [movements, selectedMonth, selectedYear, filterType]);
+
+  useEffect(() => {
+    if (movements.length > 0) {
+      filterMovements();
+    }
+  }, [movements, filterMovements]);
+
+  // Resetar página quando os filtros mudarem
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedMonth, selectedYear, filterType]);
 
   const getSummary = () => {
     const entrada = filteredMovements.filter(m => m.type === 'entrada');

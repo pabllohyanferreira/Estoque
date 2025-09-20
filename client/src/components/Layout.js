@@ -16,7 +16,6 @@ import {
   Sun,
   Moon,
   Mail,
-  MessageCircle
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -37,14 +36,15 @@ const Layout = ({ children }) => {
   const location = useLocation();
   const { isDark, toggleTheme } = useTheme();
   const screenInfo = useScreenInfo();
-  const { contentRef, needsScroll, forceCheck } = useAutoScroll();
+  const { contentRef } = useAutoScroll();
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: Home },
+    { name: 'Visão Geral', href: '/', icon: Home },
     { name: 'Produtos', href: '/items', icon: Package },
     { name: 'Clientes', href: '/clients', icon: Users },
     { name: 'Vendas', href: '/sales', icon: ShoppingCart },
-    { name: 'Contas a Pagar', href: '/accounts-payable', icon: CreditCard },
+    { name: 'Links de Pagamento', href: '/payment-links', icon: CreditCard },
+    { name: 'Contas a Pagar', href: '/accounts-payable', icon: Receipt },
     { name: 'Contas a Receber', href: '/accounts-receivable', icon: Receipt },
     { name: 'Catálogo', href: '/catalog', icon: ShoppingBag },
     { name: 'Relatórios', href: '/reports', icon: BarChart3 },
@@ -71,10 +71,10 @@ const Layout = ({ children }) => {
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-gray-900 dark:text-white bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    EzStock
+                    Lojify
                   </h1>
                   <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                    Sistema de Estoque
+                    Lojify
                   </p>
                 </div>
               </div>
@@ -144,7 +144,7 @@ const Layout = ({ children }) => {
             </div>
             <div className="space-y-3">
               <button
-                onClick={() => window.open('https://mail.google.com/mail/?view=cm&fs=1&to=pablohyan64@gmail.com&su=Suporte%20-%20EzStock&body=Olá!%20Preciso%20de%20suporte%20com%20o%20sistema%20EzStock.', '_blank')}
+                onClick={() => window.open('https://mail.google.com/mail/?view=cm&fs=1&to=pablohyan64@gmail.com&su=Suporte%20-%20Lojify&body=Olá!%20Preciso%20de%20suporte%20com%20o%20sistema%20Lojify.', '_blank')}
                 className="w-full group relative flex items-center px-4 py-3 text-sm font-medium rounded-xl text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 transform hover:scale-105 border border-transparent hover:border-blue-200 dark:hover:border-blue-800"
                 title="Enviar email para suporte"
               >
@@ -155,7 +155,7 @@ const Layout = ({ children }) => {
               </button>
               <button
                 onClick={() => {
-                  const message = encodeURIComponent('Olá! Preciso de suporte com o sistema EzStock.');
+                  const message = encodeURIComponent('Olá! Preciso de suporte com o sistema Lojify.');
                   window.open(`https://wa.me/5581996201464?text=${message}`, '_blank');
                 }}
                 className="w-full group relative flex items-center px-4 py-3 text-sm font-medium rounded-xl text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 transition-all duration-300 transform hover:scale-105 border border-transparent hover:border-green-200 dark:hover:border-green-800"
@@ -237,10 +237,10 @@ const Layout = ({ children }) => {
                       </div>
                       <div>
                         <h1 className="text-lg font-bold text-gray-900 dark:text-white bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                          EzStock
+                          Lojify
                         </h1>
                         <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                          Sistema de Estoque
+                          Lojify
                         </p>
                       </div>
                     </div>
@@ -319,7 +319,7 @@ const Layout = ({ children }) => {
                     </div>
                     <div className="space-y-2">
                       <button
-                        onClick={() => window.open('https://mail.google.com/mail/?view=cm&fs=1&to=pablohyan64@gmail.com&su=Suporte%20-%20EzStock&body=Olá!%20Preciso%20de%20suporte%20com%20o%20sistema%20EzStock.', '_blank')}
+                        onClick={() => window.open('https://mail.google.com/mail/?view=cm&fs=1&to=pablohyan64@gmail.com&su=Suporte%20-%20Lojify&body=Olá!%20Preciso%20de%20suporte%20com%20o%20sistema%20Lojify.', '_blank')}
                         className="w-full group relative flex items-center px-3 py-2 text-sm font-medium rounded-lg text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 transform hover:scale-105 border border-transparent hover:border-blue-200 dark:hover:border-blue-800"
                         title="Enviar email para suporte"
                       >
@@ -330,7 +330,7 @@ const Layout = ({ children }) => {
                       </button>
                       <button
                         onClick={() => {
-                          const message = encodeURIComponent('Olá! Preciso de suporte com o sistema EzStock.');
+                          const message = encodeURIComponent('Olá! Preciso de suporte com o sistema Lojify.');
                           window.open(`https://wa.me/5581996201464?text=${message}`, '_blank');
                         }}
                         className="w-full group relative flex items-center px-3 py-2 text-sm font-medium rounded-lg text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 transition-all duration-300 transform hover:scale-105 border border-transparent hover:border-green-200 dark:hover:border-green-800"

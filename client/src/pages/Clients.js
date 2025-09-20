@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Search, Filter, Edit, Trash2, Users, Mail, Phone, Building } from 'lucide-react';
 import { clientsAPI } from '../services/api';
 import toast from 'react-hot-toast';
@@ -15,11 +15,7 @@ const Clients = () => {
   const [selectedClient, setSelectedClient] = useState(null);
   const [editingClient, setEditingClient] = useState(null);
 
-  useEffect(() => {
-    loadClients();
-  }, []);
-
-  const loadClients = async () => {
+  const loadClients = useCallback(async () => {
     try {
       setLoading(true);
       const params = {};
@@ -35,7 +31,11 @@ const Clients = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm, selectedType]);
+
+  useEffect(() => {
+    loadClients();
+  }, [loadClients]);
 
   const handleCreateClient = async (clientData) => {
     try {
