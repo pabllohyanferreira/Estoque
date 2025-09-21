@@ -11,6 +11,33 @@ function initializeDatabase() {
     // Habilitar foreign keys
     db.run('PRAGMA foreign_keys = ON');
   
+  // Tabela de Usuários (Revendedores)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      role TEXT DEFAULT 'reseller',
+      status TEXT DEFAULT 'active',
+      mercadopago_access_token TEXT,
+      mercadopago_public_key TEXT,
+      pix_key TEXT,
+      pix_merchant_name TEXT,
+      pix_merchant_city TEXT,
+      pix_merchant_city_code TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_login DATETIME
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Erro ao criar tabela users:', err);
+    } else {
+      console.log('✅ Tabela users criada/verificada');
+    }
+  });
+
   // Tabela de Itens (Produtos)
   db.run(`
     CREATE TABLE IF NOT EXISTS items (
@@ -44,7 +71,8 @@ function initializeDatabase() {
     { name: 'image_data', type: 'BLOB' },
     { name: 'installments', type: 'INTEGER DEFAULT 1' },
     { name: 'installment_value', type: 'REAL' },
-    { name: 'cost', type: 'REAL DEFAULT 0' }
+    { name: 'cost', type: 'REAL DEFAULT 0' },
+    { name: 'user_id', type: 'INTEGER DEFAULT 1' }
   ];
 
   columnsToAdd.forEach(column => {
@@ -119,6 +147,19 @@ function initializeDatabase() {
     } else if (!err) {
       console.log('Coluna client_name adicionada com sucesso');
     }
+  });
+
+  // Adicionar coluna user_id nas tabelas principais
+  const tablesToAddUserId = ['clients', 'accounts_payable', 'accounts_receivable', 'stock_movements', 'sales', 'payment_links', 'payment_transactions'];
+  
+  tablesToAddUserId.forEach(table => {
+    db.run(`ALTER TABLE ${table} ADD COLUMN user_id INTEGER DEFAULT 1`, (err) => {
+      if (err && !err.message.includes('duplicate column name')) {
+        console.error(`Erro ao adicionar coluna user_id na tabela ${table}:`, err.message);
+      } else if (!err) {
+        console.log(`Coluna user_id adicionada na tabela ${table}`);
+      }
+    });
   });
 
   // Tabela de Movimentações de Estoque
@@ -237,8 +278,33 @@ function initializeDatabase() {
     });
   });
 
+    // Criar usuário admin padrão se não existir
+    const bcrypt = require('bcrypt');
+    const adminPassword = bcrypt.hashSync('admin123', 10);
+    
+    db.get('SELECT id FROM users WHERE email = ?', ['admin@lojify.com'], (err, row) => {
+      if (err) {
+        console.error('❌ Erro ao verificar usuário admin:', err);
+      } else if (!row) {
+        db.run(`
+          INSERT INTO users (name, email, password, role, status) 
+          VALUES (?, ?, ?, ?, ?)
+        `, ['Administrador', 'admin@lojify.com', adminPassword, 'admin', 'active'], (err) => {
+          if (err) {
+            console.error('❌ Erro ao criar usuário admin:', err);
+          } else {
+            console.log('✅ Usuário admin criado com sucesso');
+            console.log('   Email: admin@lojify.com');
+            console.log('   Senha: admin123');
+          }
+        });
+      } else {
+        console.log('✅ Usuário admin já existe');
+      }
+    });
+
     console.log('🎉 Banco de dados inicializado com sucesso!');
-    console.log('📊 Tabelas disponíveis: items, clients, accounts_payable, accounts_receivable, stock_movements, sales, sale_items, payment_links, payment_transactions');
+    console.log('📊 Tabelas disponíveis: users, items, clients, accounts_payable, accounts_receivable, stock_movements, sales, sale_items, payment_links, payment_transactions');
     resolve();
   });
 }

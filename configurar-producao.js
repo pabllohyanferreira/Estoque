@@ -46,17 +46,6 @@ async function configurarServidor() {
   configs.server.env.PIX_MERCHANT_CITY = await question('Cidade: ') || 'São Paulo';
   configs.server.env.PIX_MERCHANT_CITY_CODE = await question('Código da cidade (3550308): ') || '3550308';
   
-  console.log('\n🏦 BOLETO');
-  configs.server.env.BANK_CODE = await question('Código do banco (001): ') || '001';
-  configs.server.env.BANK_AGENCY = await question('Agência: ');
-  configs.server.env.BANK_ACCOUNT = await question('Conta: ');
-  configs.server.env.BANK_ACCOUNT_DIGIT = await question('Dígito da conta: ');
-  configs.server.env.COMPANY_NAME = await question('Nome da empresa (Lojify Ltda): ') || 'Lojify Ltda';
-  configs.server.env.COMPANY_DOCUMENT = await question('CNPJ da empresa: ');
-  configs.server.env.COMPANY_ADDRESS = await question('Endereço da empresa: ');
-  configs.server.env.COMPANY_CITY = await question('Cidade da empresa: ');
-  configs.server.env.COMPANY_STATE = await question('Estado da empresa: ');
-  configs.server.env.COMPANY_ZIP_CODE = await question('CEP da empresa: ');
 }
 
 async function configurarCliente() {
@@ -107,18 +96,6 @@ async function salvarConfiguracoes() {
       merchantCity: configs.server.env.PIX_MERCHANT_CITY,
       merchantCityCode: configs.server.env.PIX_MERCHANT_CITY_CODE
     },
-    boleto: {
-      bankCode: configs.server.env.BANK_CODE,
-      bankAgency: configs.server.env.BANK_AGENCY,
-      bankAccount: configs.server.env.BANK_ACCOUNT,
-      bankAccountDigit: configs.server.env.BANK_ACCOUNT_DIGIT,
-      companyName: configs.server.env.COMPANY_NAME,
-      companyDocument: configs.server.env.COMPANY_DOCUMENT,
-      companyAddress: configs.server.env.COMPANY_ADDRESS,
-      companyCity: configs.server.env.COMPANY_CITY,
-      companyState: configs.server.env.COMPANY_STATE,
-      companyZipCode: configs.server.env.COMPANY_ZIP_CODE
-    }
   };
   
   fs.writeFileSync('server/config/production.js', `module.exports = ${JSON.stringify(serverProdConfig, null, 2)};`);

@@ -20,7 +20,7 @@ const handleValidationErrors = (req, res, next) => {
 // Validação para dados de pagamento
 const paymentValidation = [
   body('amount').isFloat({ min: 0.01 }).withMessage('Valor deve ser maior que zero'),
-  body('paymentMethod').isIn(['pix', 'credit_card', 'debit_card', 'boleto']).withMessage('Método de pagamento inválido'),
+  body('paymentMethod').isIn(['pix']).withMessage('Método de pagamento inválido'),
   body('customer.name').notEmpty().withMessage('Nome do cliente é obrigatório'),
   body('customer.email').isEmail().withMessage('Email inválido'),
   body('customer.document').notEmpty().withMessage('Documento do cliente é obrigatório'),
@@ -151,67 +151,7 @@ router.get('/methods', (req, res) => {
   }
 });
 
-// Gerar PDF do boleto
-router.get('/boleto/:paymentId/pdf', async (req, res) => {
-  try {
-    const { paymentId } = req.params;
-    
-    console.log(`📄 Gerando PDF do boleto: ${paymentId}`);
-    
-    const pdfData = await paymentService.generateBoletoPDF(paymentId);
-    
-    res.json({
-      success: true,
-      pdf: pdfData,
-      message: 'PDF do boleto gerado com sucesso'
-    });
-    
-  } catch (error) {
-    console.error('❌ Erro ao gerar PDF:', error);
-    res.status(500).json({ 
-      error: 'Erro ao gerar PDF do boleto',
-      message: error.message 
-    });
-  }
-});
 
-// Webhook para cartões
-router.post('/webhook/card', async (req, res) => {
-  try {
-    console.log('🔔 Webhook de cartão recebido:', JSON.stringify(req.body, null, 2));
-    
-    const webhookData = req.body;
-    
-    // Processar webhook
-    const result = await paymentService.processWebhook(webhookData, 'credit_card');
-    
-    if (result) {
-      // Atualizar status no banco
-      const updateQuery = `
-        UPDATE payment_transactions 
-        SET status = ?, updated_at = ?
-        WHERE payment_id = ?
-      `;
-      
-      db.run(updateQuery, [result.status, new Date().toISOString(), result.paymentId], (err) => {
-        if (err) {
-          console.error('❌ Erro ao atualizar status via webhook:', err);
-        } else {
-          console.log('✅ Status atualizado via webhook:', result.paymentId);
-        }
-      });
-    }
-    
-    res.status(200).json({ success: true, message: 'Webhook processado' });
-    
-  } catch (error) {
-    console.error('❌ Erro ao processar webhook:', error);
-    res.status(500).json({ 
-      error: 'Erro ao processar webhook',
-      message: error.message 
-    });
-  }
-});
 
 // Obter transações
 router.get('/transactions', async (req, res) => {

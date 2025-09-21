@@ -29,7 +29,7 @@
     "react",
     "node"
   ],
-  "author": "Seu Nome",
+  "author": "Pabllo",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"

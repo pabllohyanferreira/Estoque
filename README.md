@@ -16,7 +16,7 @@ npm start
 
 - ✅ **Gestão de Estoque** - Controle completo de produtos
 - ✅ **Sistema de Vendas** - Processo de vendas integrado
-- ✅ **Pagamentos** - PIX, Cartão de Crédito/Débito, Boleto
+- ✅ **Pagamentos** - PIX
 - ✅ **Clientes** - Cadastro e gestão de clientes
 - ✅ **Relatórios** - Relatórios de vendas e estoque
 - ✅ **Catálogo Público** - Interface para clientes

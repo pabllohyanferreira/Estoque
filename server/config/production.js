@@ -29,17 +29,6 @@ module.exports = {
   PIX_MERCHANT_CITY: process.env.PIX_MERCHANT_CITY || 'São Paulo',
   PIX_MERCHANT_CITY_CODE: process.env.PIX_MERCHANT_CITY_CODE || '3550308',
 
-  // Configurações do Boleto (PRODUÇÃO)
-  BANK_CODE: process.env.BANK_CODE,
-  BANK_AGENCY: process.env.BANK_AGENCY,
-  BANK_ACCOUNT: process.env.BANK_ACCOUNT,
-  BANK_ACCOUNT_DIGIT: process.env.BANK_ACCOUNT_DIGIT,
-  COMPANY_NAME: process.env.COMPANY_NAME,
-  COMPANY_DOCUMENT: process.env.COMPANY_DOCUMENT,
-  COMPANY_ADDRESS: process.env.COMPANY_ADDRESS,
-  COMPANY_CITY: process.env.COMPANY_CITY,
-  COMPANY_STATE: process.env.COMPANY_STATE,
-  COMPANY_ZIP_CODE: process.env.COMPANY_ZIP_CODE,
 
   // Configurações de CORS
   CORS_ORIGINS: process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : ['https://seu-dominio.com'],

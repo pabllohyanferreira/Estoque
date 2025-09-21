@@ -9,6 +9,7 @@ const stockMovementRoutes = require('./routes/stockMovements');
 const salesRoutes = require('./routes/sales');
 const paymentRoutes = require('./routes/payments');
 const paymentApiRoutes = require('./routes/paymentRoutes');
+const authRoutes = require('./routes/auth');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -37,6 +38,7 @@ initializeDatabase().then(() => {
   console.log('🎉 Banco de dados inicializado com sucesso!');
   
   // Rotas
+  app.use('/api/auth', authRoutes);
   app.use('/api/items', itemRoutes);
   app.use('/api/clients', clientRoutes);
   app.use('/api/accounts', accountRoutes);
