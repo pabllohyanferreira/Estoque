@@ -1,3 +1,12 @@
+// Suprimir warning de depreciação específico
+process.removeAllListeners('warning');
+process.on('warning', (warning) => {
+  if (warning.name === 'DeprecationWarning' && warning.message.includes('util._extend')) {
+    return; // Suprimir este warning específico
+  }
+  console.warn(warning.name, warning.message);
+});
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
