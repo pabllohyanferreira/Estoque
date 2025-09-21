@@ -10,6 +10,7 @@ const salesRoutes = require('./routes/sales');
 const paymentRoutes = require('./routes/payments');
 const paymentApiRoutes = require('./routes/paymentRoutes');
 const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/users');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -39,6 +40,7 @@ initializeDatabase().then(() => {
   
   // Rotas
   app.use('/api/auth', authRoutes);
+  app.use('/api/users', userRoutes);
   app.use('/api/items', itemRoutes);
   app.use('/api/clients', clientRoutes);
   app.use('/api/accounts', accountRoutes);

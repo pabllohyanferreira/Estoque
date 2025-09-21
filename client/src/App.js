@@ -15,6 +15,7 @@ import Checkout from './pages/Checkout';
 import Reports from './pages/Reports';
 import Sales from './pages/Sales';
 import PaymentLinks from './pages/PaymentLinks';
+import Users from './pages/Users';
 import './App.css';
 
 function App() {
@@ -63,6 +64,7 @@ function App() {
                     <Route path="/reports" element={<Reports />} />
                     <Route path="/sales" element={<Sales />} />
                     <Route path="/payment-links" element={<PaymentLinks />} />
+                    <Route path="/users" element={<Users />} />
                   </Routes>
                 </Layout>
               ) : (

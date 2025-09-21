@@ -16,6 +16,7 @@ import {
   Sun,
   Moon,
   Mail,
+  UserCog,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -48,6 +49,7 @@ const Layout = ({ children }) => {
     { name: 'Contas a Receber', href: '/accounts-receivable', icon: Receipt },
     { name: 'Catálogo', href: '/catalog', icon: ShoppingBag },
     { name: 'Relatórios', href: '/reports', icon: BarChart3 },
+    { name: 'Usuários', href: '/users', icon: UserCog },
   ];
 
   const isActive = (href) => {

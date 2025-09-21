@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail, Store, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
-import api from '../services/api';
+import { authAPI } from '../services/api';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -25,7 +25,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await api.post('/auth/login', formData);
+      const response = await authAPI.login(formData);
       
       if (response.data.success) {
         // Salvar token e dados do usuário
@@ -33,7 +33,13 @@ const Login = () => {
         localStorage.setItem('user', JSON.stringify(response.data.user));
         
         toast.success('Login realizado com sucesso!');
-        navigate('/dashboard');
+        
+        // Redirecionar baseado no role do usuário
+        if (response.data.user.role === 'admin') {
+          navigate('/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       }
     } catch (error) {
       console.error('Erro no login:', error);

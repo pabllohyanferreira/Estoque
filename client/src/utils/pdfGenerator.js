@@ -249,7 +249,7 @@ export const generateAdvancedPDF = async (movements, summary, period) => {
   currentY = addPieChart(doc, summary, currentY + 10);
   
   // Adicionar tabela de movimentações
-  currentY = addMovementsTable(doc, movements, currentY + 10);
+  addMovementsTable(doc, movements, currentY + 10);
   
   // Adicionar análise de tendências
   // currentY = addTrendAnalysis(doc, movements, currentY + 10);
@@ -317,6 +317,7 @@ const addPieChart = (doc, summary, yPosition) => {
 };
 
 // Função para adicionar análise de tendências
+// eslint-disable-next-line no-unused-vars
 const addTrendAnalysis = (doc, movements, yPosition) => {
   let currentY = yPosition;
   

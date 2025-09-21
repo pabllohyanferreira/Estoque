@@ -9,304 +9,291 @@ function initializeDatabase() {
     console.log('🗄️ Inicializando banco de dados...');
     
     // Habilitar foreign keys
-    db.run('PRAGMA foreign_keys = ON');
-  
-  // Tabela de Usuários (Revendedores)
-  db.run(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
-      role TEXT DEFAULT 'reseller',
-      status TEXT DEFAULT 'active',
-      mercadopago_access_token TEXT,
-      mercadopago_public_key TEXT,
-      pix_key TEXT,
-      pix_merchant_name TEXT,
-      pix_merchant_city TEXT,
-      pix_merchant_city_code TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      last_login DATETIME
-    )
-  `, (err) => {
-    if (err) {
-      console.error('❌ Erro ao criar tabela users:', err);
-    } else {
-      console.log('✅ Tabela users criada/verificada');
-    }
-  });
-
-  // Tabela de Itens (Produtos)
-  db.run(`
-    CREATE TABLE IF NOT EXISTS items (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      description TEXT,
-      category TEXT,
-      price REAL NOT NULL,
-      cost REAL DEFAULT 0,
-      installments INTEGER DEFAULT 1,
-      installment_value REAL,
-      quantity INTEGER DEFAULT 0,
-      min_quantity INTEGER DEFAULT 0,
-      unit TEXT DEFAULT 'unidade',
-      barcode TEXT UNIQUE,
-      supplier TEXT,
-      image_data BLOB,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `, (err) => {
-    if (err) {
-      console.error('❌ Erro ao criar tabela items:', err);
-    } else {
-      console.log('✅ Tabela items criada/verificada');
-    }
-  });
-
-  // Adicionar colunas se não existirem (com tratamento de erro)
-  const columnsToAdd = [
-    { name: 'image_data', type: 'BLOB' },
-    { name: 'installments', type: 'INTEGER DEFAULT 1' },
-    { name: 'installment_value', type: 'REAL' },
-    { name: 'cost', type: 'REAL DEFAULT 0' },
-    { name: 'user_id', type: 'INTEGER DEFAULT 1' }
-  ];
-
-  columnsToAdd.forEach(column => {
-    db.run(`ALTER TABLE items ADD COLUMN ${column.name} ${column.type}`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error(`Erro ao adicionar coluna ${column.name}:`, err.message);
-      } else if (!err) {
-        console.log(`Coluna ${column.name} adicionada com sucesso`);
-      }
-    });
-  });
-
-  // Tabela de Clientes
-  db.run(`
-    CREATE TABLE IF NOT EXISTS clients (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      email TEXT UNIQUE,
-      phone TEXT,
-      address TEXT,
-      cpf_cnpj TEXT UNIQUE,
-      type TEXT DEFAULT 'individual',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `, (err) => {
-    if (err) {
-      console.error('❌ Erro ao criar tabela clients:', err);
-    } else {
-      console.log('✅ Tabela clients criada/verificada');
-    }
-  });
-
-  // Tabela de Contas a Pagar
-  db.run(`
-    CREATE TABLE IF NOT EXISTS accounts_payable (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      description TEXT NOT NULL,
-      amount REAL NOT NULL,
-      due_date DATE NOT NULL,
-      status TEXT DEFAULT 'pending',
-      supplier TEXT,
-      category TEXT,
-      notes TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  // Tabela de Contas a Receber
-  db.run(`
-    CREATE TABLE IF NOT EXISTS accounts_receivable (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      description TEXT NOT NULL,
-      amount REAL NOT NULL,
-      due_date DATE NOT NULL,
-      status TEXT DEFAULT 'pending',
-      client_id INTEGER,
-      client_name TEXT,
-      category TEXT,
-      notes TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (client_id) REFERENCES clients (id)
-    )
-  `);
-
-  // Adicionar coluna client_name se não existir
-  db.run(`ALTER TABLE accounts_receivable ADD COLUMN client_name TEXT`, (err) => {
-    if (err && !err.message.includes('duplicate column name')) {
-      console.error('Erro ao adicionar coluna client_name:', err.message);
-    } else if (!err) {
-      console.log('Coluna client_name adicionada com sucesso');
-    }
-  });
-
-  // Adicionar coluna user_id nas tabelas principais
-  const tablesToAddUserId = ['clients', 'accounts_payable', 'accounts_receivable', 'stock_movements', 'sales', 'payment_links', 'payment_transactions'];
-  
-  tablesToAddUserId.forEach(table => {
-    db.run(`ALTER TABLE ${table} ADD COLUMN user_id INTEGER DEFAULT 1`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error(`Erro ao adicionar coluna user_id na tabela ${table}:`, err.message);
-      } else if (!err) {
-        console.log(`Coluna user_id adicionada na tabela ${table}`);
-      }
-    });
-  });
-
-  // Tabela de Movimentações de Estoque
-  db.run(`
-    CREATE TABLE IF NOT EXISTS stock_movements (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      item_id INTEGER NOT NULL,
-      type TEXT NOT NULL,
-      quantity INTEGER NOT NULL,
-      reason TEXT,
-      reference TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (item_id) REFERENCES items (id)
-    )
-  `);
-
-  // Tabela de Vendas
-  db.run(`
-    CREATE TABLE IF NOT EXISTS sales (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      client_id INTEGER NOT NULL,
-      client_name TEXT NOT NULL,
-      title TEXT NOT NULL,
-      total_amount REAL NOT NULL,
-      payment_method TEXT DEFAULT 'dinheiro',
-      installments INTEGER DEFAULT 1,
-      installment_value REAL,
-      installment_payment_method TEXT,
-      due_date TEXT,
-      status TEXT DEFAULT 'completed',
-      notes TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (client_id) REFERENCES clients (id)
-    )
-  `);
-
-  // Tabela de Itens da Venda
-  db.run(`
-    CREATE TABLE IF NOT EXISTS sale_items (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      sale_id INTEGER NOT NULL,
-      item_id INTEGER NOT NULL,
-      item_name TEXT NOT NULL,
-      quantity INTEGER NOT NULL,
-      unit_price REAL NOT NULL,
-      total_price REAL NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (sale_id) REFERENCES sales (id),
-      FOREIGN KEY (item_id) REFERENCES items (id)
-    )
-  `);
-
-  // Tabela de Links de Pagamento
-  db.run(`
-    CREATE TABLE IF NOT EXISTS payment_links (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      sale_id INTEGER,
-      client_id INTEGER,
-      client_name TEXT NOT NULL,
-      title TEXT NOT NULL,
-      description TEXT,
-      amount REAL NOT NULL,
-      payment_methods TEXT NOT NULL,
-      mercado_pago_id TEXT,
-      mercado_pago_url TEXT,
-      status TEXT DEFAULT 'pending',
-      expires_at DATETIME,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      paid_at DATETIME,
-      FOREIGN KEY (sale_id) REFERENCES sales (id),
-      FOREIGN KEY (client_id) REFERENCES clients (id)
-    )
-  `);
-
-  // Tabela de Transações de Pagamento
-  db.run(`
-    CREATE TABLE IF NOT EXISTS payment_transactions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      payment_id TEXT UNIQUE NOT NULL,
-      payment_method TEXT NOT NULL,
-      amount REAL NOT NULL,
-      customer_name TEXT NOT NULL,
-      customer_email TEXT NOT NULL,
-      customer_document TEXT NOT NULL,
-      description TEXT,
-      status TEXT DEFAULT 'pending',
-      payment_data TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `, (err) => {
-    if (err) {
-      console.error('❌ Erro ao criar tabela payment_transactions:', err);
-    } else {
-      console.log('✅ Tabela payment_transactions criada/verificada');
-    }
-  });
-
-  // Adicionar colunas se não existirem
-  const paymentColumns = [
-    { name: 'payment_id', type: 'TEXT UNIQUE NOT NULL' },
-    { name: 'customer_name', type: 'TEXT NOT NULL' },
-    { name: 'customer_email', type: 'TEXT NOT NULL' },
-    { name: 'customer_document', type: 'TEXT NOT NULL' },
-    { name: 'description', type: 'TEXT' },
-    { name: 'payment_data', type: 'TEXT' },
-    { name: 'updated_at', type: 'DATETIME DEFAULT CURRENT_TIMESTAMP' }
-  ];
-
-  paymentColumns.forEach(column => {
-    db.run(`ALTER TABLE payment_transactions ADD COLUMN ${column.name} ${column.type}`, (err) => {
-      if (err && !err.message.includes('duplicate column name')) {
-        console.error(`Erro ao adicionar coluna ${column.name}:`, err.message);
-      }
-    });
-  });
-
-    // Criar usuário admin padrão se não existir
-    const bcrypt = require('bcrypt');
-    const adminPassword = bcrypt.hashSync('admin123', 10);
-    
-    db.get('SELECT id FROM users WHERE email = ?', ['admin@lojify.com'], (err, row) => {
+    db.run('PRAGMA foreign_keys = ON', (err) => {
       if (err) {
-        console.error('❌ Erro ao verificar usuário admin:', err);
-      } else if (!row) {
-        db.run(`
-          INSERT INTO users (name, email, password, role, status) 
-          VALUES (?, ?, ?, ?, ?)
-        `, ['Administrador', 'admin@lojify.com', adminPassword, 'admin', 'active'], (err) => {
-          if (err) {
-            console.error('❌ Erro ao criar usuário admin:', err);
-          } else {
-            console.log('✅ Usuário admin criado com sucesso');
-            console.log('   Email: admin@lojify.com');
-            console.log('   Senha: admin123');
-          }
-        });
-      } else {
-        console.log('✅ Usuário admin já existe');
+        console.error('❌ Erro ao habilitar foreign keys:', err);
+        reject(err);
+        return;
       }
+      
+      console.log('✅ Foreign keys habilitadas');
+      createTables();
     });
+    
+    function createTables() {
+      // Tabela de Usuários (Revendedores)
+      db.run(`
+        CREATE TABLE IF NOT EXISTS users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          email TEXT UNIQUE NOT NULL,
+          password TEXT NOT NULL,
+          role TEXT DEFAULT 'reseller',
+          status TEXT DEFAULT 'active',
+          mercadopago_access_token TEXT,
+          mercadopago_public_key TEXT,
+          pix_key TEXT,
+          pix_merchant_name TEXT,
+          pix_merchant_city TEXT,
+          pix_merchant_city_code TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          last_login DATETIME
+        )
+      `, (err) => {
+        if (err) {
+          console.error('❌ Erro ao criar tabela users:', err);
+          reject(err);
+        } else {
+          console.log('✅ Tabela users criada/verificada');
+          createOtherTables();
+        }
+      });
+    }
+    
+    function createOtherTables() {
+      // Tabela de Itens (Produtos)
+      db.run(`
+        CREATE TABLE IF NOT EXISTS items (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          description TEXT,
+          category TEXT,
+          price REAL NOT NULL,
+          cost REAL DEFAULT 0,
+          installments INTEGER DEFAULT 1,
+          stock INTEGER DEFAULT 0,
+          min_stock INTEGER DEFAULT 0,
+          max_stock INTEGER DEFAULT 1000,
+          image_url TEXT,
+          barcode TEXT,
+          sku TEXT,
+          user_id INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+      `, (err) => {
+        if (err) {
+          console.error('❌ Erro ao criar tabela items:', err);
+        } else {
+          console.log('✅ Tabela items criada/verificada');
+        }
+      });
 
-    console.log('🎉 Banco de dados inicializado com sucesso!');
-    console.log('📊 Tabelas disponíveis: users, items, clients, accounts_payable, accounts_receivable, stock_movements, sales, sale_items, payment_links, payment_transactions');
-    resolve();
+      // Tabela de Clientes
+      db.run(`
+        CREATE TABLE IF NOT EXISTS clients (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          email TEXT,
+          phone TEXT,
+          address TEXT,
+          document TEXT,
+          user_id INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+      `, (err) => {
+        if (err) {
+          console.error('❌ Erro ao criar tabela clients:', err);
+        } else {
+          console.log('✅ Tabela clients criada/verificada');
+        }
+      });
+
+      // Tabela de Contas a Pagar
+      db.run(`
+        CREATE TABLE IF NOT EXISTS accounts_payable (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          description TEXT NOT NULL,
+          amount REAL NOT NULL,
+          due_date DATE NOT NULL,
+          status TEXT DEFAULT 'pending',
+          user_id INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+      `, (err) => {
+        if (err) {
+          console.error('❌ Erro ao criar tabela accounts_payable:', err);
+        } else {
+          console.log('✅ Tabela accounts_payable criada/verificada');
+        }
+      });
+
+      // Tabela de Contas a Receber
+      db.run(`
+        CREATE TABLE IF NOT EXISTS accounts_receivable (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          description TEXT NOT NULL,
+          amount REAL NOT NULL,
+          due_date DATE NOT NULL,
+          status TEXT DEFAULT 'pending',
+          client_id INTEGER,
+          user_id INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (client_id) REFERENCES clients(id),
+          FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+      `, (err) => {
+        if (err) {
+          console.error('❌ Erro ao criar tabela accounts_receivable:', err);
+        } else {
+          console.log('✅ Tabela accounts_receivable criada/verificada');
+        }
+      });
+
+      // Tabela de Movimentações de Estoque
+      db.run(`
+        CREATE TABLE IF NOT EXISTS stock_movements (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          item_id INTEGER NOT NULL,
+          type TEXT NOT NULL,
+          quantity INTEGER NOT NULL,
+          reason TEXT,
+          user_id INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (item_id) REFERENCES items(id),
+          FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+      `, (err) => {
+        if (err) {
+          console.error('❌ Erro ao criar tabela stock_movements:', err);
+        } else {
+          console.log('✅ Tabela stock_movements criada/verificada');
+        }
+      });
+
+      // Tabela de Vendas
+      db.run(`
+        CREATE TABLE IF NOT EXISTS sales (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          client_id INTEGER,
+          total_amount REAL NOT NULL,
+          payment_method TEXT,
+          installments INTEGER DEFAULT 1,
+          status TEXT DEFAULT 'completed',
+          user_id INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (client_id) REFERENCES clients(id),
+          FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+      `, (err) => {
+        if (err) {
+          console.error('❌ Erro ao criar tabela sales:', err);
+        } else {
+          console.log('✅ Tabela sales criada/verificada');
+        }
+      });
+
+      // Tabela de Itens da Venda
+      db.run(`
+        CREATE TABLE IF NOT EXISTS sale_items (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          sale_id INTEGER NOT NULL,
+          item_id INTEGER NOT NULL,
+          quantity INTEGER NOT NULL,
+          price REAL NOT NULL,
+          FOREIGN KEY (sale_id) REFERENCES sales(id),
+          FOREIGN KEY (item_id) REFERENCES items(id)
+        )
+      `, (err) => {
+        if (err) {
+          console.error('❌ Erro ao criar tabela sale_items:', err);
+        } else {
+          console.log('✅ Tabela sale_items criada/verificada');
+        }
+      });
+
+      // Tabela de Links de Pagamento
+      db.run(`
+        CREATE TABLE IF NOT EXISTS payment_links (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          payment_id TEXT UNIQUE NOT NULL,
+          amount REAL NOT NULL,
+          payment_method TEXT NOT NULL,
+          status TEXT DEFAULT 'pending',
+          customer_name TEXT NOT NULL,
+          customer_email TEXT NOT NULL,
+          customer_document TEXT NOT NULL,
+          description TEXT,
+          user_id INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+      `, (err) => {
+        if (err) {
+          console.error('❌ Erro ao criar tabela payment_links:', err);
+        } else {
+          console.log('✅ Tabela payment_links criada/verificada');
+        }
+      });
+
+      // Tabela de Transações de Pagamento
+      db.run(`
+        CREATE TABLE IF NOT EXISTS payment_transactions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          payment_id TEXT UNIQUE NOT NULL,
+          amount REAL NOT NULL,
+          payment_method TEXT NOT NULL,
+          status TEXT DEFAULT 'pending',
+          customer_name TEXT NOT NULL,
+          customer_email TEXT NOT NULL,
+          customer_document TEXT NOT NULL,
+          description TEXT,
+          payment_data TEXT,
+          user_id INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+      `, (err) => {
+        if (err) {
+          console.error('❌ Erro ao criar tabela payment_transactions:', err);
+        } else {
+          console.log('✅ Tabela payment_transactions criada/verificada');
+          createAdminUser();
+        }
+      });
+    }
+    
+    function createAdminUser() {
+      // Criar usuário admin padrão se não existir
+      const bcrypt = require('bcrypt');
+      const adminPassword = bcrypt.hashSync('admin123', 10);
+      
+      db.get('SELECT id FROM users WHERE email = ?', ['admin@lojify.com'], (err, row) => {
+        if (err) {
+          console.error('❌ Erro ao verificar usuário admin:', err);
+          reject(err);
+        } else if (!row) {
+          db.run(`
+            INSERT INTO users (name, email, password, role, status) 
+            VALUES (?, ?, ?, ?, ?)
+          `, ['Administrador', 'admin@lojify.com', adminPassword, 'admin', 'active'], (err) => {
+            if (err) {
+              console.error('❌ Erro ao criar usuário admin:', err);
+              reject(err);
+            } else {
+              console.log('✅ Usuário admin criado com sucesso');
+              console.log('   Email: admin@lojify.com');
+              console.log('   Senha: admin123');
+              resolve();
+            }
+          });
+        } else {
+          console.log('✅ Usuário admin já existe');
+          resolve();
+        }
+      });
+    }
   });
 }
 
-module.exports = { initializeDatabase, db }; 
+module.exports = { initializeDatabase, db };
