@@ -180,11 +180,11 @@ const Dashboard = () => {
                       <div>
                         <p className="text-sm font-medium text-gray-900 dark:text-white">{item.name}</p>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Estoque: {item.quantity} {item.unit} (Mín: {item.min_quantity})
+                          Estoque: {item.stock} un (Mín: {item.min_stock})
                         </p>
                       </div>
                       <span className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                        {item.quantity} {item.unit}
+                        {item.stock} un
                       </span>
                     </div>
                   ))}
@@ -329,11 +329,11 @@ const Dashboard = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        item.quantity <= item.min_quantity 
+                        item.stock <= item.min_stock 
                           ? 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200' 
                           : 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200'
                       }`}>
-                        {item.quantity} {item.unit}
+                        {item.stock} un
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">

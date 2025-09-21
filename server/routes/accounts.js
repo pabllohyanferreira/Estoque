@@ -19,7 +19,7 @@ router.get('/payable', (req, res) => {
   }
   
   if (supplier) {
-    query += ' AND supplier LIKE ?';
+    query += ' AND description LIKE ?';
     params.push(`%${supplier}%`);
   }
   
@@ -66,15 +66,15 @@ router.post('/payable', [
   }
 
   const {
-    description, amount, due_date, status, supplier, category, notes
+    description, amount, due_date, status
   } = req.body;
 
   const query = `
-    INSERT INTO accounts_payable (description, amount, due_date, status, supplier, category, notes)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO accounts_payable (description, amount, due_date, status)
+    VALUES (?, ?, ?, ?)
   `;
 
-  db.run(query, [description, amount, due_date, status || 'pending', supplier, category, notes], function(err) {
+  db.run(query, [description, amount, due_date, status || 'pending'], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Erro ao criar conta a pagar', details: err.message });
     }
@@ -99,16 +99,16 @@ router.put('/payable/:id', [
 
   const { id } = req.params;
   const {
-    description, amount, due_date, status, supplier, category, notes
+    description, amount, due_date, status
   } = req.body;
 
   const query = `
     UPDATE accounts_payable 
-    SET description = ?, amount = ?, due_date = ?, status = ?, supplier = ?, category = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
+    SET description = ?, amount = ?, due_date = ?, status = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `;
 
-  db.run(query, [description, amount, due_date, status || 'pending', supplier, category, notes, id], function(err) {
+  db.run(query, [description, amount, due_date, status || 'pending', id], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Erro ao atualizar conta a pagar', details: err.message });
     }
@@ -222,15 +222,15 @@ router.post('/receivable', [
   }
 
   const {
-    description, amount, due_date, client_id, status, category, notes
+    description, amount, due_date, client_id, status
   } = req.body;
 
   const query = `
-    INSERT INTO accounts_receivable (description, amount, due_date, client_id, status, category, notes)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO accounts_receivable (description, amount, due_date, client_id, status)
+    VALUES (?, ?, ?, ?, ?)
   `;
 
-  db.run(query, [description, amount, due_date, client_id, status || 'pending', category, notes], function(err) {
+  db.run(query, [description, amount, due_date, client_id, status || 'pending'], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Erro ao criar conta a receber', details: err.message });
     }
@@ -256,16 +256,16 @@ router.put('/receivable/:id', [
 
   const { id } = req.params;
   const {
-    description, amount, due_date, client_id, status, category, notes
+    description, amount, due_date, client_id, status
   } = req.body;
 
   const query = `
     UPDATE accounts_receivable 
-    SET description = ?, amount = ?, due_date = ?, client_id = ?, status = ?, category = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
+    SET description = ?, amount = ?, due_date = ?, client_id = ?, status = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `;
 
-  db.run(query, [description, amount, due_date, client_id, status || 'pending', category, notes, id], function(err) {
+  db.run(query, [description, amount, due_date, client_id, status || 'pending', id], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Erro ao atualizar conta a receber', details: err.message });
     }

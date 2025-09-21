@@ -32,6 +32,11 @@ function App() {
     setLoading(false);
   }, []);
 
+  // Função para atualizar o estado de autenticação
+  const updateAuthState = (authenticated) => {
+    setIsAuthenticated(authenticated);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -48,11 +53,11 @@ function App() {
             <Route path="/public" element={<PublicCatalog />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/login" element={
-              isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+              isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login onLoginSuccess={() => updateAuthState(true)} />
             } />
             <Route path="/*" element={
               isAuthenticated ? (
-                <Layout>
+                <Layout onLogout={() => updateAuthState(false)}>
                   <Routes>
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/dashboard" element={<Dashboard />} />

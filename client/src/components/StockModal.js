@@ -79,12 +79,12 @@ const StockModal = ({ isOpen, onClose, onSubmit, item }) => {
                     <div className="flex items-center">
                       <Hash className="h-4 w-4 text-green-600 mr-2" />
                       <span className="text-gray-600 dark:text-gray-300">Estoque atual:</span>
-                      <span className="font-semibold text-gray-900 dark:text-white ml-1">{item.quantity} {item.unit}</span>
+                      <span className="font-semibold text-gray-900 dark:text-white ml-1">{item.stock} un</span>
                     </div>
                     <div className="flex items-center">
                       <TrendingDown className="h-4 w-4 text-orange-600 mr-2" />
                       <span className="text-gray-600 dark:text-gray-300">Estoque mínimo:</span>
-                      <span className="font-semibold text-gray-900 dark:text-white ml-1">{item.min_quantity} {item.unit}</span>
+                      <span className="font-semibold text-gray-900 dark:text-white ml-1">{item.min_stock} un</span>
                     </div>
                   </div>
                 </div>
@@ -202,7 +202,7 @@ const StockModal = ({ isOpen, onClose, onSubmit, item }) => {
                       required: 'Quantidade é obrigatória',
                       min: { value: 1, message: 'Quantidade deve ser maior que zero' },
                       validate: (value) => {
-                        if (movementType === 'saida' && parseInt(value) > item.quantity) {
+                        if (movementType === 'saida' && parseInt(value) > item.stock) {
                           return 'Quantidade insuficiente em estoque';
                         }
                         return true;
@@ -211,7 +211,7 @@ const StockModal = ({ isOpen, onClose, onSubmit, item }) => {
                     className="w-full px-4 py-3 pr-16 border-2 border-gray-200 dark:border-gray-600 rounded-xl shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white transition-colors"
                   />
                   <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                    <span className="text-gray-500 dark:text-gray-400 text-sm font-medium">{item.unit}</span>
+                    <span className="text-gray-500 dark:text-gray-400 text-sm font-medium">un</span>
                   </div>
                 </div>
                 {errors.quantity && (
@@ -223,7 +223,7 @@ const StockModal = ({ isOpen, onClose, onSubmit, item }) => {
                 {movementType === 'saida' && (
                   <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 flex items-center">
                     <TrendingDown className="h-4 w-4 mr-1 text-blue-600" />
-                    Estoque disponível: <span className="font-semibold ml-1">{item.quantity} {item.unit}</span>
+                    Estoque disponível: <span className="font-semibold ml-1">{item.stock} un</span>
                   </p>
                 )}
               </div>
@@ -277,7 +277,7 @@ const StockModal = ({ isOpen, onClose, onSubmit, item }) => {
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center justify-between">
                       <span className="text-gray-600 dark:text-gray-300">Estoque atual:</span>
-                      <span className="font-semibold text-gray-900 dark:text-white">{item.quantity} {item.unit}</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">{item.stock} un</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-gray-600 dark:text-gray-300">
@@ -288,7 +288,7 @@ const StockModal = ({ isOpen, onClose, onSubmit, item }) => {
                           ? 'text-green-600 dark:text-green-400' 
                           : 'text-blue-600 dark:text-blue-400'
                       }`}>
-                        {movementType === 'entrada' ? '+' : '-'} {watch('quantity')} {item.unit}
+                        {movementType === 'entrada' ? '+' : '-'} {watch('quantity')} un
                       </span>
                     </div>
                     <div className="border-t border-green-200 dark:border-green-700 pt-2">
@@ -296,9 +296,9 @@ const StockModal = ({ isOpen, onClose, onSubmit, item }) => {
                         <span className="text-green-900 dark:text-green-200 font-semibold">Novo estoque:</span>
                         <span className="text-green-900 dark:text-green-200 font-bold text-lg">
                           {movementType === 'entrada' 
-                            ? item.quantity + parseInt(watch('quantity') || 0)
-                            : item.quantity - parseInt(watch('quantity') || 0)
-                          } {item.unit}
+                            ? item.stock + parseInt(watch('quantity') || 0)
+                            : item.stock - parseInt(watch('quantity') || 0)
+                          } un
                         </span>
                       </div>
                     </div>

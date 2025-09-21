@@ -47,7 +47,7 @@ router.get('/', (req, res) => {
   }
   
   if (lowStock === 'true') {
-    query += ' AND quantity <= min_quantity';
+    query += ' AND stock <= min_stock';
   }
   
   query += ' ORDER BY name';
@@ -113,15 +113,6 @@ router.post('/', upload.single('image'), [
     }
     return true;
   }),
-  body('installment_value').custom((value) => {
-    if (value) {
-      const num = parseFloat(value);
-      if (isNaN(num) || num < 0) {
-        throw new Error('Valor da parcela deve ser um número positivo');
-      }
-    }
-    return true;
-  }),
   body('quantity').custom((value) => {
     const num = parseInt(value);
     if (isNaN(num) || num < 0) {
@@ -143,14 +134,13 @@ router.post('/', upload.single('image'), [
   }
 
   const {
-    name, description, category, price, installments, installment_value, quantity, min_quantity, unit, barcode, supplier
+    name, description, category, price, installments, quantity, min_quantity, barcode
   } = req.body;
 
   console.log('Dados para criação do item:', {
     name,
     price,
     installments,
-    installment_value,
     quantity,
     min_quantity
   });
@@ -164,14 +154,12 @@ router.post('/', upload.single('image'), [
   // Converter valores para os tipos corretos
   const priceFloat = parseFloat(price) || 0;
   const installmentsInt = parseInt(installments) || 1;
-  const installmentValueFloat = parseFloat(installment_value) || priceFloat;
   const quantityInt = parseInt(quantity, 10) || 0;
   const minQuantityInt = parseInt(min_quantity, 10) || 0;
 
   console.log('Valores convertidos para criação:', {
     priceFloat,
     installmentsInt,
-    installmentValueFloat,
     quantityInt,
     minQuantityInt
   });
@@ -186,15 +174,15 @@ router.post('/', upload.single('image'), [
   }
 
   const query = `
-    INSERT INTO items (name, description, category, price, cost, installments, installment_value, quantity, min_quantity, unit, barcode, supplier, image_data)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO items (name, description, category, price, cost, installments, stock, min_stock, barcode, sku, image_url)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   console.log('Executando query de criação:', query);
-  console.log('Parâmetros da query:', [name, description, category, priceFloat, 0, installmentsInt, installmentValueFloat, quantityInt, minQuantityInt, unit || 'unidade', barcode, supplier, image_data]);
+  console.log('Parâmetros da query:', [name, description, category, priceFloat, 0, installmentsInt, quantityInt, minQuantityInt, barcode, barcode, image_data ? 'data:image/jpeg;base64,' + image_data.toString('base64') : null]);
 
   try {
-    db.run(query, [name, description, category, priceFloat, 0, installmentsInt, installmentValueFloat, quantityInt, minQuantityInt, unit || 'unidade', barcode, supplier, image_data], function(err) {
+    db.run(query, [name, description, category, priceFloat, 0, installmentsInt, quantityInt, minQuantityInt, barcode, barcode, image_data ? 'data:image/jpeg;base64,' + image_data.toString('base64') : null], function(err) {
       if (err) {
         console.error('Erro no banco de dados ao criar item:', err);
         return res.status(500).json({ error: 'Erro ao criar item', details: err.message });
@@ -253,15 +241,6 @@ router.put('/:id', upload.single('image'), [
     }
     return true;
   }),
-  body('installment_value').custom((value) => {
-    if (value) {
-      const num = parseFloat(value);
-      if (isNaN(num) || num < 0) {
-        throw new Error('Valor da parcela deve ser um número positivo');
-      }
-    }
-    return true;
-  })
 ], (req, res) => {
   console.log('=== INÍCIO DA ATUALIZAÇÃO DE PRODUTO ===');
   console.log('ID do produto:', req.params.id);
@@ -277,13 +256,12 @@ router.put('/:id', upload.single('image'), [
 
   const { id } = req.params;
   const {
-    name, description, category, price, installments, installment_value, min_quantity, unit, barcode, supplier
+    name, description, category, price, installments, min_quantity, barcode
   } = req.body;
 
   // Converter valores para os tipos corretos
   const priceFloat = parseFloat(price);
   const installmentsInt = parseInt(installments);
-  const installmentValueFloat = parseFloat(installment_value);
   const minQuantityInt = parseInt(min_quantity) || 0;
 
   console.log('Dados recebidos para atualização:', {
@@ -291,21 +269,18 @@ router.put('/:id', upload.single('image'), [
     name,
     price: priceFloat,
     installments: installmentsInt,
-    installment_value: installmentValueFloat,
     min_quantity: minQuantityInt
   });
 
   console.log('Valores originais:', {
     price,
     installments,
-    installment_value,
     min_quantity
   });
 
   console.log('Valores convertidos:', {
     priceFloat,
     installmentsInt,
-    installmentValueFloat,
     minQuantityInt
   });
 
@@ -331,19 +306,19 @@ router.put('/:id', upload.single('image'), [
   if (image_data) {
     query = `
       UPDATE items 
-      SET name = ?, description = ?, category = ?, price = ?, installments = ?, installment_value = ?, 
-          min_quantity = ?, unit = ?, barcode = ?, supplier = ?, image_data = ?, updated_at = CURRENT_TIMESTAMP
+      SET name = ?, description = ?, category = ?, price = ?, installments = ?, 
+          min_stock = ?, barcode = ?, sku = ?, image_url = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `;
-    params = [name, description, category, priceFloat, installmentsInt, installmentValueFloat, minQuantityInt, unit || 'unidade', barcode, supplier, image_data, id];
+    params = [name, description, category, priceFloat, installmentsInt, minQuantityInt, barcode, barcode, 'data:image/jpeg;base64,' + image_data.toString('base64'), id];
   } else {
     query = `
       UPDATE items 
-      SET name = ?, description = ?, category = ?, price = ?, installments = ?, installment_value = ?, 
-          min_quantity = ?, unit = ?, barcode = ?, supplier = ?, updated_at = CURRENT_TIMESTAMP
+      SET name = ?, description = ?, category = ?, price = ?, installments = ?, 
+          min_stock = ?, barcode = ?, sku = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `;
-    params = [name, description, category, priceFloat, installmentsInt, installmentValueFloat, minQuantityInt, unit || 'unidade', barcode, supplier, id];
+    params = [name, description, category, priceFloat, installmentsInt, minQuantityInt, barcode, barcode, id];
   }
 
   console.log('Query SQL:', query);
@@ -412,7 +387,7 @@ router.post('/:id/stock', [
     reason: reason
   });
 
-  db.get('SELECT quantity FROM items WHERE id = ?', [id], (err, item) => {
+  db.get('SELECT stock FROM items WHERE id = ?', [id], (err, item) => {
     if (err) {
       return res.status(500).json({ error: 'Erro ao buscar item', details: err.message });
     }
@@ -421,7 +396,7 @@ router.post('/:id/stock', [
     }
 
     // Converter o estoque atual para número inteiro
-    const currentQuantity = parseInt(item.quantity, 10);
+    const currentQuantity = parseInt(item.stock, 10);
     const newQuantity = type === 'entrada' ? currentQuantity + quantityInt : currentQuantity - quantityInt;
     
     console.log('Cálculo de estoque:', {
@@ -435,7 +410,7 @@ router.post('/:id/stock', [
       return res.status(400).json({ error: 'Quantidade insuficiente em estoque' });
     }
 
-    db.run('UPDATE items SET quantity = ? WHERE id = ?', [newQuantity, id], function(err) {
+    db.run('UPDATE items SET stock = ? WHERE id = ?', [newQuantity, id], function(err) {
       if (err) {
         return res.status(500).json({ error: 'Erro ao atualizar estoque', details: err.message });
       }

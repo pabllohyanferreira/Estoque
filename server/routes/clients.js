@@ -12,15 +12,11 @@ router.get('/', (req, res) => {
   const params = [];
   
   if (search) {
-    query += ' AND (name LIKE ? OR email LIKE ? OR phone LIKE ? OR cpf_cnpj LIKE ?)';
+    query += ' AND (name LIKE ? OR email LIKE ? OR phone LIKE ? OR document LIKE ?)';
     const searchTerm = `%${search}%`;
     params.push(searchTerm, searchTerm, searchTerm, searchTerm);
   }
   
-  if (type) {
-    query += ' AND type = ?';
-    params.push(type);
-  }
   
   query += ' ORDER BY name';
   
@@ -50,8 +46,7 @@ router.get('/:id', (req, res) => {
 // Criar novo cliente
 router.post('/', [
   body('name').notEmpty().withMessage('Nome é obrigatório'),
-  body('email').optional().isEmail().withMessage('Email deve ser válido'),
-  body('type').optional().isIn(['individual', 'company']).withMessage('Tipo deve ser individual ou company')
+  body('email').optional().isEmail().withMessage('Email deve ser válido')
 ], (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -59,15 +54,15 @@ router.post('/', [
   }
 
   const {
-    name, email, phone, address, cpf_cnpj, type
+    name, email, phone, address, document
   } = req.body;
 
   const query = `
-    INSERT INTO clients (name, email, phone, address, cpf_cnpj, type)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO clients (name, email, phone, address, document)
+    VALUES (?, ?, ?, ?, ?)
   `;
 
-  db.run(query, [name, email, phone, address, cpf_cnpj, type || 'individual'], function(err) {
+  db.run(query, [name, email, phone, address, document], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Erro ao criar cliente', details: err.message });
     }
@@ -81,8 +76,7 @@ router.post('/', [
 // Atualizar cliente
 router.put('/:id', [
   body('name').notEmpty().withMessage('Nome é obrigatório'),
-  body('email').optional().isEmail().withMessage('Email deve ser válido'),
-  body('type').optional().isIn(['individual', 'company']).withMessage('Tipo deve ser individual ou company')
+  body('email').optional().isEmail().withMessage('Email deve ser válido')
 ], (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -91,16 +85,16 @@ router.put('/:id', [
 
   const { id } = req.params;
   const {
-    name, email, phone, address, cpf_cnpj, type
+    name, email, phone, address, document
   } = req.body;
 
   const query = `
     UPDATE clients 
-    SET name = ?, email = ?, phone = ?, address = ?, cpf_cnpj = ?, type = ?, updated_at = CURRENT_TIMESTAMP
+    SET name = ?, email = ?, phone = ?, address = ?, document = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `;
 
-  db.run(query, [name, email, phone, address, cpf_cnpj, type || 'individual', id], function(err) {
+  db.run(query, [name, email, phone, address, document, id], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Erro ao atualizar cliente', details: err.message });
     }

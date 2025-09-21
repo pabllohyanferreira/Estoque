@@ -4,7 +4,7 @@ import { Eye, EyeOff, Lock, Mail, Store, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authAPI } from '../services/api';
 
-const Login = () => {
+const Login = ({ onLoginSuccess }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -33,6 +33,11 @@ const Login = () => {
         localStorage.setItem('user', JSON.stringify(response.data.user));
         
         toast.success('Login realizado com sucesso!');
+        
+        // Atualizar estado de autenticação no App
+        if (onLoginSuccess) {
+          onLoginSuccess();
+        }
         
         // Redirecionar baseado no role do usuário
         if (response.data.user.role === 'admin') {

@@ -304,16 +304,16 @@ const Items = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col">
                           <span className={`text-sm font-semibold ${
-                            item.quantity <= item.min_quantity 
+                            item.stock <= item.min_stock 
                               ? 'text-red-600 dark:text-red-400' 
                               : 'text-green-600 dark:text-green-400'
                           }`}>
-                            {item.quantity} {item.unit}
+                            {item.stock} un
                           </span>
                           <span className="text-xs text-gray-500 dark:text-gray-400">
-                            Mín: {item.min_quantity} {item.unit}
+                            Mín: {item.min_stock} un
                           </span>
-                          {item.quantity <= item.min_quantity && (
+                          {item.stock <= item.min_stock && (
                             <AlertTriangle className="h-4 w-4 text-red-500 ml-2" />
                           )}
                         </div>
