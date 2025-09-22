@@ -71,16 +71,29 @@ const Layout = ({ children, onLogout }) => {
     navigate('/login');
   };
 
-  const navigation = [
-    { name: 'Visão Geral', href: '/', icon: Home },
-    { name: 'Produtos', href: '/items', icon: Package },
-    { name: 'Clientes', href: '/clients', icon: Users },
-    { name: 'Contas a Pagar', href: '/accounts-payable', icon: CreditCard },
-    { name: 'Contas a Receber', href: '/accounts-receivable', icon: Receipt },
-    { name: 'Catálogo', href: '/catalog', icon: ShoppingBag },
-    { name: 'Relatórios', href: '/reports', icon: BarChart3 },
-    { name: 'Usuários', href: '/users', icon: UserCog },
-  ];
+  // Navegação baseada no role do usuário
+  const getNavigation = () => {
+    const allNavigation = [
+      { name: 'Visão Geral', href: '/', icon: Home },
+      { name: 'Produtos', href: '/items', icon: Package },
+      { name: 'Clientes', href: '/clients', icon: Users },
+      { name: 'Contas a Pagar', href: '/accounts-payable', icon: CreditCard },
+      { name: 'Contas a Receber', href: '/accounts-receivable', icon: Receipt },
+      { name: 'Catálogo', href: '/catalog', icon: ShoppingBag },
+      { name: 'Relatórios', href: '/reports', icon: BarChart3 },
+      { name: 'Usuários', href: '/users', icon: UserCog, adminOnly: true },
+    ];
+
+    // Se o usuário for admin, mostra todas as opções
+    if (user?.role === 'admin') {
+      return allNavigation;
+    }
+
+    // Se for revendedor, remove a aba de Usuários
+    return allNavigation.filter(item => !item.adminOnly);
+  };
+
+  const navigation = getNavigation();
 
   const logoutItem = { name: 'Sair', href: '#', icon: LogOut, onClick: handleLogout };
 

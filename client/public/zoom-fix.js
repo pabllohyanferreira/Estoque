@@ -4,14 +4,22 @@
   
   // Função para aplicar zoom padrão
   function applyDefaultZoom() {
-    // Forçar zoom 100% em todos os elementos
-    document.documentElement.style.zoom = '100%';
-    document.body.style.zoom = '100%';
-    document.body.style.fontSize = '16px';
+    // Verificar se os elementos existem antes de acessá-los
+    if (document.documentElement) {
+      document.documentElement.style.zoom = '100%';
+    }
+    if (document.body) {
+      document.body.style.zoom = '100%';
+      document.body.style.fontSize = '16px';
+    }
     
     // Remover qualquer transform de escala
-    document.documentElement.style.transform = 'none';
-    document.body.style.transform = 'none';
+    if (document.documentElement) {
+      document.documentElement.style.transform = 'none';
+    }
+    if (document.body) {
+      document.body.style.transform = 'none';
+    }
     
     // Garantir que o viewport não tenha zoom
     const viewport = document.querySelector('meta[name="viewport"]');

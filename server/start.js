@@ -11,6 +11,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const { initializeDatabase } = require('./database/init');
+const databaseManager = require('./database/databaseManager');
 const itemRoutes = require('./routes/items');
 const clientRoutes = require('./routes/clients');
 const accountRoutes = require('./routes/accounts');
@@ -114,10 +115,12 @@ initializeDatabase().then(() => {
 // Tratamento de sinais para shutdown graceful
 process.on('SIGTERM', () => {
   console.log('SIGTERM recebido, encerrando servidor...');
+  databaseManager.closeAll();
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
   console.log('SIGINT recebido, encerrando servidor...');
+  databaseManager.closeAll();
   process.exit(0);
 });

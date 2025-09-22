@@ -1,11 +1,11 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const { db } = require('../database/init');
+const { getUserDatabase } = require('../middleware/userDatabase');
 
 const router = express.Router();
 
 // Buscar todos os clientes
-router.get('/', (req, res) => {
+router.get('/', getUserDatabase, (req, res) => {
   const { search, type } = req.query;
   
   let query = 'SELECT * FROM clients WHERE 1=1';
@@ -20,7 +20,7 @@ router.get('/', (req, res) => {
   
   query += ' ORDER BY name';
   
-  db.all(query, params, (err, rows) => {
+  req.userDb.all(query, params, (err, rows) => {
     if (err) {
       return res.status(500).json({ error: 'Erro ao buscar clientes', details: err.message });
     }
@@ -29,10 +29,10 @@ router.get('/', (req, res) => {
 });
 
 // Buscar cliente por ID
-router.get('/:id', (req, res) => {
+router.get('/:id', getUserDatabase, (req, res) => {
   const { id } = req.params;
   
-  db.get('SELECT * FROM clients WHERE id = ?', [id], (err, row) => {
+  req.userDb.get('SELECT * FROM clients WHERE id = ?', [id], (err, row) => {
     if (err) {
       return res.status(500).json({ error: 'Erro ao buscar cliente', details: err.message });
     }
@@ -44,7 +44,7 @@ router.get('/:id', (req, res) => {
 });
 
 // Criar novo cliente
-router.post('/', [
+router.post('/', getUserDatabase, [
   body('name').notEmpty().withMessage('Nome é obrigatório'),
   body('email').optional().isEmail().withMessage('Email deve ser válido')
 ], (req, res) => {
@@ -62,7 +62,7 @@ router.post('/', [
     VALUES (?, ?, ?, ?, ?)
   `;
 
-  db.run(query, [name, email, phone, address, document], function(err) {
+  req.userDb.run(query, [name, email, phone, address, document], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Erro ao criar cliente', details: err.message });
     }
@@ -74,7 +74,7 @@ router.post('/', [
 });
 
 // Atualizar cliente
-router.put('/:id', [
+router.put('/:id', getUserDatabase, [
   body('name').notEmpty().withMessage('Nome é obrigatório'),
   body('email').optional().isEmail().withMessage('Email deve ser válido')
 ], (req, res) => {
@@ -94,7 +94,7 @@ router.put('/:id', [
     WHERE id = ?
   `;
 
-  db.run(query, [name, email, phone, address, document, id], function(err) {
+  req.userDb.run(query, [name, email, phone, address, document, id], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Erro ao atualizar cliente', details: err.message });
     }
@@ -106,11 +106,11 @@ router.put('/:id', [
 });
 
 // Deletar cliente
-router.delete('/:id', (req, res) => {
+router.delete('/:id', getUserDatabase, (req, res) => {
   const { id } = req.params;
 
   // Verificar se o cliente tem contas a receber
-  db.get('SELECT COUNT(*) as count FROM accounts_receivable WHERE client_id = ?', [id], (err, result) => {
+  req.userDb.get('SELECT COUNT(*) as count FROM accounts_receivable WHERE client_id = ?', [id], (err, result) => {
     if (err) {
       return res.status(500).json({ error: 'Erro ao verificar cliente', details: err.message });
     }
@@ -121,7 +121,7 @@ router.delete('/:id', (req, res) => {
       });
     }
 
-    db.run('DELETE FROM clients WHERE id = ?', [id], function(err) {
+    req.userDb.run('DELETE FROM clients WHERE id = ?', [id], function(err) {
       if (err) {
         return res.status(500).json({ error: 'Erro ao deletar cliente', details: err.message });
       }

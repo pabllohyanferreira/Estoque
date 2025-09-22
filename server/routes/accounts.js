@@ -1,13 +1,13 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const { db } = require('../database/init');
+const { getUserDatabase } = require('../middleware/userDatabase');
 
 const router = express.Router();
 
 // ==================== CONTAS A PAGAR ====================
 
 // Buscar todas as contas a pagar
-router.get('/payable', (req, res) => {
+router.get('/payable', getUserDatabase, (req, res) => {
   const { status, supplier, dueDate } = req.query;
   
   let query = 'SELECT * FROM accounts_payable WHERE 1=1';
@@ -30,7 +30,7 @@ router.get('/payable', (req, res) => {
   
   query += ' ORDER BY due_date';
   
-  db.all(query, params, (err, rows) => {
+  req.userDb.all(query, params, (err, rows) => {
     if (err) {
       return res.status(500).json({ error: 'Erro ao buscar contas a pagar', details: err.message });
     }
@@ -39,10 +39,10 @@ router.get('/payable', (req, res) => {
 });
 
 // Buscar conta a pagar por ID
-router.get('/payable/:id', (req, res) => {
+router.get('/payable/:id', getUserDatabase, (req, res) => {
   const { id } = req.params;
   
-  db.get('SELECT * FROM accounts_payable WHERE id = ?', [id], (err, row) => {
+  req.userDb.get('SELECT * FROM accounts_payable WHERE id = ?', [id], (err, row) => {
     if (err) {
       return res.status(500).json({ error: 'Erro ao buscar conta a pagar', details: err.message });
     }
@@ -54,7 +54,7 @@ router.get('/payable/:id', (req, res) => {
 });
 
 // Criar nova conta a pagar
-router.post('/payable', [
+router.post('/payable', getUserDatabase, [
   body('description').notEmpty().withMessage('Descrição é obrigatória'),
   body('amount').isFloat({ min: 0 }).withMessage('Valor deve ser um número positivo'),
   body('due_date').isDate().withMessage('Data de vencimento deve ser válida'),
@@ -74,7 +74,7 @@ router.post('/payable', [
     VALUES (?, ?, ?, ?)
   `;
 
-  db.run(query, [description, amount, due_date, status || 'pending'], function(err) {
+  req.userDb.run(query, [description, amount, due_date, status || 'pending'], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Erro ao criar conta a pagar', details: err.message });
     }
@@ -86,7 +86,7 @@ router.post('/payable', [
 });
 
 // Atualizar conta a pagar
-router.put('/payable/:id', [
+router.put('/payable/:id', getUserDatabase, [
   body('description').notEmpty().withMessage('Descrição é obrigatória'),
   body('amount').isFloat({ min: 0 }).withMessage('Valor deve ser um número positivo'),
   body('due_date').isDate().withMessage('Data de vencimento deve ser válida'),
@@ -108,7 +108,7 @@ router.put('/payable/:id', [
     WHERE id = ?
   `;
 
-  db.run(query, [description, amount, due_date, status || 'pending', id], function(err) {
+  req.userDb.run(query, [description, amount, due_date, status || 'pending', id], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Erro ao atualizar conta a pagar', details: err.message });
     }
@@ -120,10 +120,10 @@ router.put('/payable/:id', [
 });
 
 // Deletar conta a pagar
-router.delete('/payable/:id', (req, res) => {
+router.delete('/payable/:id', getUserDatabase, (req, res) => {
   const { id } = req.params;
 
-  db.run('DELETE FROM accounts_payable WHERE id = ?', [id], function(err) {
+  req.userDb.run('DELETE FROM accounts_payable WHERE id = ?', [id], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Erro ao deletar conta a pagar', details: err.message });
     }
@@ -135,10 +135,10 @@ router.delete('/payable/:id', (req, res) => {
 });
 
 // Marcar conta a pagar como paga
-router.post('/payable/:id/pay', (req, res) => {
+router.post('/payable/:id/pay', getUserDatabase, (req, res) => {
   const { id } = req.params;
 
-  db.run('UPDATE accounts_payable SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', ['paid', id], function(err) {
+  req.userDb.run('UPDATE accounts_payable SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', ['paid', id], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Erro ao marcar conta como paga', details: err.message });
     }
@@ -152,7 +152,7 @@ router.post('/payable/:id/pay', (req, res) => {
 // ==================== CONTAS A RECEBER ====================
 
 // Buscar todas as contas a receber
-router.get('/receivable', (req, res) => {
+router.get('/receivable', getUserDatabase, (req, res) => {
   const { status, client_id, dueDate } = req.query;
   
   let query = `
@@ -180,7 +180,7 @@ router.get('/receivable', (req, res) => {
   
   query += ' ORDER BY ar.due_date';
   
-  db.all(query, params, (err, rows) => {
+  req.userDb.all(query, params, (err, rows) => {
     if (err) {
       return res.status(500).json({ error: 'Erro ao buscar contas a receber', details: err.message });
     }
@@ -189,10 +189,10 @@ router.get('/receivable', (req, res) => {
 });
 
 // Buscar conta a receber por ID
-router.get('/receivable/:id', (req, res) => {
+router.get('/receivable/:id', getUserDatabase, (req, res) => {
   const { id } = req.params;
   
-  db.get(`
+  req.userDb.get(`
     SELECT ar.*, c.name as client_name 
     FROM accounts_receivable ar 
     LEFT JOIN clients c ON ar.client_id = c.id 
@@ -209,7 +209,7 @@ router.get('/receivable/:id', (req, res) => {
 });
 
 // Criar nova conta a receber
-router.post('/receivable', [
+router.post('/receivable', getUserDatabase, [
   body('description').notEmpty().withMessage('Descrição é obrigatória'),
   body('amount').isFloat({ min: 0 }).withMessage('Valor deve ser um número positivo'),
   body('due_date').isDate().withMessage('Data de vencimento deve ser válida'),
@@ -230,7 +230,7 @@ router.post('/receivable', [
     VALUES (?, ?, ?, ?, ?)
   `;
 
-  db.run(query, [description, amount, due_date, client_id, status || 'pending'], function(err) {
+  req.userDb.run(query, [description, amount, due_date, client_id, status || 'pending'], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Erro ao criar conta a receber', details: err.message });
     }
@@ -242,7 +242,7 @@ router.post('/receivable', [
 });
 
 // Atualizar conta a receber
-router.put('/receivable/:id', [
+router.put('/receivable/:id', getUserDatabase, [
   body('description').notEmpty().withMessage('Descrição é obrigatória'),
   body('amount').isFloat({ min: 0 }).withMessage('Valor deve ser um número positivo'),
   body('due_date').isDate().withMessage('Data de vencimento deve ser válida'),
@@ -265,7 +265,7 @@ router.put('/receivable/:id', [
     WHERE id = ?
   `;
 
-  db.run(query, [description, amount, due_date, client_id, status || 'pending', id], function(err) {
+  req.userDb.run(query, [description, amount, due_date, client_id, status || 'pending', id], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Erro ao atualizar conta a receber', details: err.message });
     }
@@ -277,10 +277,10 @@ router.put('/receivable/:id', [
 });
 
 // Deletar conta a receber
-router.delete('/receivable/:id', (req, res) => {
+router.delete('/receivable/:id', getUserDatabase, (req, res) => {
   const { id } = req.params;
 
-  db.run('DELETE FROM accounts_receivable WHERE id = ?', [id], function(err) {
+  req.userDb.run('DELETE FROM accounts_receivable WHERE id = ?', [id], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Erro ao deletar conta a receber', details: err.message });
     }
@@ -292,10 +292,10 @@ router.delete('/receivable/:id', (req, res) => {
 });
 
 // Marcar conta a receber como paga
-router.post('/receivable/:id/pay', (req, res) => {
+router.post('/receivable/:id/pay', getUserDatabase, (req, res) => {
   const { id } = req.params;
 
-  db.run('UPDATE accounts_receivable SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', ['paid', id], function(err) {
+  req.userDb.run('UPDATE accounts_receivable SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', ['paid', id], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Erro ao marcar conta como paga', details: err.message });
     }
@@ -309,8 +309,8 @@ router.post('/receivable/:id/pay', (req, res) => {
 // ==================== ESTATÍSTICAS GERAIS ====================
 
 // Estatísticas gerais de contas
-router.get('/stats', (req, res) => {
-  db.get(`
+router.get('/stats', getUserDatabase, (req, res) => {
+  req.userDb.get(`
     SELECT 
       (SELECT COUNT(*) FROM accounts_payable) as total_payable,
       (SELECT COUNT(*) FROM accounts_receivable) as total_receivable,

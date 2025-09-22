@@ -35,7 +35,9 @@ api.interceptors.response.use(
       url: error.config?.url,
       status: error.response?.status,
       data: error.response?.data,
-      message: error.message
+      message: error.message,
+      hasToken: !!localStorage.getItem('token'),
+      tokenLength: localStorage.getItem('token')?.length || 0
     });
     
     // Tratamento específico para erros de rede
@@ -43,11 +45,14 @@ api.interceptors.response.use(
       console.error('🔌 Erro de conexão: Servidor não está respondendo');
     }
     
-    // Tratamento para token expirado
-    if (error.response?.status === 401) {
+    // Tratamento para token expirado ou inválido
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      console.error('🔐 Erro de autenticação - redirecionando para login');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
     
     return Promise.reject(error);

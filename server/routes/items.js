@@ -1,7 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const multer = require('multer');
-const { db } = require('../database/init');
+const { getUserDatabase } = require('../middleware/userDatabase');
 
 const router = express.Router();
 
@@ -19,8 +19,8 @@ const upload = multer({
 });
 
 // Buscar categorias (deve vir antes das rotas com parâmetros)
-router.get('/categories/list', (req, res) => {
-  db.all('SELECT DISTINCT category FROM items WHERE category IS NOT NULL AND category != "" ORDER BY category', (err, rows) => {
+router.get('/categories/list', getUserDatabase, (req, res) => {
+  req.userDb.all('SELECT DISTINCT category FROM items WHERE category IS NOT NULL AND category != "" ORDER BY category', (err, rows) => {
     if (err) {
       return res.status(500).json({ error: 'Erro ao buscar categorias', details: err.message });
     }
@@ -29,7 +29,7 @@ router.get('/categories/list', (req, res) => {
 });
 
 // Buscar todos os itens
-router.get('/', (req, res) => {
+router.get('/', getUserDatabase, (req, res) => {
   const { search, category, lowStock } = req.query;
   
   let query = 'SELECT * FROM items WHERE 1=1';
@@ -52,7 +52,7 @@ router.get('/', (req, res) => {
   
   query += ' ORDER BY name';
   
-  db.all(query, params, (err, rows) => {
+  req.userDb.all(query, params, (err, rows) => {
     if (err) {
       return res.status(500).json({ error: 'Erro ao buscar itens', details: err.message });
     }
@@ -68,10 +68,10 @@ router.get('/', (req, res) => {
 });
 
 // Buscar item por ID
-router.get('/:id', (req, res) => {
+router.get('/:id', getUserDatabase, (req, res) => {
   const { id } = req.params;
   
-  db.get('SELECT * FROM items WHERE id = ?', [id], (err, row) => {
+  req.userDb.get('SELECT * FROM items WHERE id = ?', [id], (err, row) => {
     if (err) {
       return res.status(500).json({ error: 'Erro ao buscar item', details: err.message });
     }
@@ -90,7 +90,7 @@ router.get('/:id', (req, res) => {
 });
 
 // Criar novo item
-router.post('/', upload.single('image'), [
+router.post('/', getUserDatabase, upload.single('image'), [
   body('name').custom((value) => {
     if (!value || value.trim() === '') {
       throw new Error('Nome é obrigatório');
@@ -182,7 +182,7 @@ router.post('/', upload.single('image'), [
   console.log('Parâmetros da query:', [name, description, category, priceFloat, 0, installmentsInt, quantityInt, minQuantityInt, barcode, barcode, image_data ? 'data:image/jpeg;base64,' + image_data.toString('base64') : null]);
 
   try {
-    db.run(query, [name, description, category, priceFloat, 0, installmentsInt, quantityInt, minQuantityInt, barcode, barcode, image_data ? 'data:image/jpeg;base64,' + image_data.toString('base64') : null], function(err) {
+    req.userDb.run(query, [name, description, category, priceFloat, 0, installmentsInt, quantityInt, minQuantityInt, barcode, barcode, image_data ? 'data:image/jpeg;base64,' + image_data.toString('base64') : null], function(err) {
       if (err) {
         console.error('Erro no banco de dados ao criar item:', err);
         return res.status(500).json({ error: 'Erro ao criar item', details: err.message });
@@ -192,7 +192,7 @@ router.post('/', upload.single('image'), [
       
       // Registrar movimentação inicial
       if (quantityInt > 0) {
-        db.run(
+        req.userDb.run(
           'INSERT INTO stock_movements (item_id, type, quantity, reason) VALUES (?, ?, ?, ?)',
           [this.lastID, 'entrada', quantityInt, 'Cadastro inicial'],
           (movementErr) => {
@@ -218,7 +218,7 @@ router.post('/', upload.single('image'), [
 });
 
 // Atualizar item
-router.put('/:id', upload.single('image'), [
+router.put('/:id', getUserDatabase, upload.single('image'), [
   body('name').custom((value) => {
     if (!value || value.trim() === '') {
       throw new Error('Nome é obrigatório');
@@ -325,7 +325,7 @@ router.put('/:id', upload.single('image'), [
   console.log('Parâmetros:', params);
 
   try {
-    db.run(query, params, function(err) {
+    req.userDb.run(query, params, function(err) {
       if (err) {
         console.error('Erro no banco de dados:', err);
         return res.status(500).json({ error: 'Erro ao atualizar item', details: err.message });
@@ -348,10 +348,10 @@ router.put('/:id', upload.single('image'), [
 });
 
 // Deletar item
-router.delete('/:id', (req, res) => {
+router.delete('/:id', getUserDatabase, (req, res) => {
   const { id } = req.params;
 
-  db.run('DELETE FROM items WHERE id = ?', [id], function(err) {
+  req.userDb.run('DELETE FROM items WHERE id = ?', [id], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Erro ao deletar item', details: err.message });
     }
@@ -363,7 +363,7 @@ router.delete('/:id', (req, res) => {
 });
 
 // Ajustar estoque
-router.post('/:id/stock', [
+router.post('/:id/stock', getUserDatabase, [
   body('quantity').isInt().withMessage('Quantidade deve ser um número inteiro'),
   body('type').isIn(['entrada', 'saida']).withMessage('Tipo deve ser entrada ou saida'),
   body('reason').notEmpty().withMessage('Motivo é obrigatório')
@@ -387,7 +387,7 @@ router.post('/:id/stock', [
     reason: reason
   });
 
-  db.get('SELECT stock FROM items WHERE id = ?', [id], (err, item) => {
+  req.userDb.get('SELECT stock FROM items WHERE id = ?', [id], (err, item) => {
     if (err) {
       return res.status(500).json({ error: 'Erro ao buscar item', details: err.message });
     }
@@ -410,13 +410,13 @@ router.post('/:id/stock', [
       return res.status(400).json({ error: 'Quantidade insuficiente em estoque' });
     }
 
-    db.run('UPDATE items SET stock = ? WHERE id = ?', [newQuantity, id], function(err) {
+    req.userDb.run('UPDATE items SET stock = ? WHERE id = ?', [newQuantity, id], function(err) {
       if (err) {
         return res.status(500).json({ error: 'Erro ao atualizar estoque', details: err.message });
       }
 
       // Registrar movimentação
-      db.run(
+      req.userDb.run(
         'INSERT INTO stock_movements (item_id, type, quantity, reason) VALUES (?, ?, ?, ?)',
         [id, type, quantityInt, reason]
       );

@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Layout from './components/Layout';
+import AdminRoute from './components/AdminRoute';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Items from './pages/Items';
@@ -69,7 +70,11 @@ function App() {
                     <Route path="/reports" element={<Reports />} />
                     <Route path="/sales" element={<Sales />} />
                     <Route path="/payment-links" element={<PaymentLinks />} />
-                    <Route path="/users" element={<Users />} />
+                    <Route path="/users" element={
+                      <AdminRoute>
+                        <Users />
+                      </AdminRoute>
+                    } />
                   </Routes>
                 </Layout>
               ) : (
