@@ -210,9 +210,9 @@ function initializeDatabase() {
     function createAdminUser() {
       // Criar usuário admin padrão se não existir
       const bcrypt = require('bcrypt');
-      const adminPassword = bcrypt.hashSync('jr270616', 10);
+      const adminPassword = bcrypt.hashSync('admin123', 10);
       
-      db.get('SELECT id FROM users WHERE email = ?', ['detty@lojify.com'], (err, row) => {
+      db.get('SELECT id FROM users WHERE email = ?', ['admin@lojify.com'], (err, row) => {
         if (err) {
           console.error('❌ Erro ao verificar usuário admin:', err);
           reject(err);
@@ -220,14 +220,15 @@ function initializeDatabase() {
           db.run(`
             INSERT INTO users (name, email, password, role, status) 
             VALUES (?, ?, ?, ?, ?)
-          `, ['detty', 'detty@lojify.com', adminPassword, 'admin', 'active'], (err) => {
+          `, ['Administrador', 'admin@lojify.com', adminPassword, 'admin', 'active'], (err) => {
             if (err) {
               console.error('❌ Erro ao criar usuário admin:', err);
               reject(err);
             } else {
               console.log('✅ Usuário admin criado com sucesso');
-              console.log('   Email: detty@lojify.com');
-              console.log('   Senha: jr270616');
+              console.log('   Email: admin@lojify.com');
+              console.log('   Senha: admin123');
+              console.log('   ⚠️  ALTERE AS CREDENCIAIS PADRÃO IMEDIATAMENTE!');
               resolve();
             }
           });

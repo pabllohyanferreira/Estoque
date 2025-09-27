@@ -7,8 +7,8 @@ Este documento descreve as configurações de segurança implementadas no sistem
 ## 🚀 Configurações Implementadas
 
 ### 1. **Autenticação e Autorização**
-- **Usuário padrão:** `detty@lojify.com`
-- **Senha padrão:** `jr270616`
+- **Usuário padrão:** Configure através do script de configuração
+- **Senha padrão:** Configure através do script de configuração
 - **JWT Token:** Expira em 24 horas
 - **Rate Limiting:** Máximo 5 tentativas de login por IP a cada 15 minutos
 
@@ -246,7 +246,7 @@ node -e "
 const bcrypt = require('bcrypt');
 const { db } = require('./database/init');
 const newPassword = bcrypt.hashSync('nova_senha_segura', 10);
-db.run('UPDATE users SET password = ? WHERE email = ?', [newPassword, 'detty@lojify.com'], (err) => {
+db.run('UPDATE users SET password = ? WHERE email = ?', [newPassword, 'admin@lojify.com'], (err) => {
   if (err) console.error('Erro:', err);
   else console.log('✅ Senha atualizada');
   process.exit(0);
