@@ -13,7 +13,6 @@ import {
   RefreshCw
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { paymentsAPI } from '../services/api';
 import { formatCurrency } from '../utils/formatters';
 
 const Checkout = () => {
@@ -112,20 +111,11 @@ const Checkout = () => {
         expires_in_days: 1
       };
 
-      console.log('📤 Enviando dados para API:', linkData);
-      const response = await paymentsAPI.createLink(linkData);
-      console.log('📥 Resposta da API:', response.data);
+      // Simular processamento de pedido
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // setPaymentData(response.data);
-      setPaymentUrl(response.data.payment_url);
-      setExpiresAt(response.data.expires_at);
-      
-      if (selectedPaymentMethod === 'pix' && response.data.qr_code) {
-        setQrCodeData(response.data.qr_code);
-      }
-
       setPaymentStatus('success');
-      toast.success('Link de pagamento gerado com sucesso!');
+      toast.success('Pedido processado com sucesso! Entre em contato para finalizar o pagamento.');
 
     } catch (error) {
       console.error('❌ Erro ao gerar link de pagamento:', error);

@@ -10,7 +10,6 @@ import {
 import { itemsAPI, clientsAPI, statsAPI, accountsPayableAPI, accountsReceivableAPI } from '../services/api';
 import { formatCurrency } from '../utils/formatters';
 import toast from 'react-hot-toast';
-import PayAccountModal from '../components/PayAccountModal';
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -347,17 +346,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Modal de Pagamento */}
-      <PayAccountModal
-        isOpen={showPayModal}
-        onClose={() => {
-          setShowPayModal(false);
-          setAccountToPay(null);
-        }}
-        onConfirm={handlePayAccount}
-        account={accountToPay}
-        type={accountToPay?.type}
-      />
     </div>
   );
 };

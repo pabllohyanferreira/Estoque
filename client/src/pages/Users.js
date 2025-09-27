@@ -4,13 +4,11 @@ import toast from 'react-hot-toast';
 import { authAPI } from '../services/api';
 import ConfirmModal from '../components/ConfirmModal';
 import UserModal from '../components/UserModal';
-import PaymentSettingsModal from '../components/PaymentSettingsModal';
 
 const Users = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showUserModal, setShowUserModal] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [action, setAction] = useState(null);
@@ -63,10 +61,6 @@ const Users = () => {
     setShowUserModal(true);
   };
 
-  const handlePaymentSettings = (user) => {
-    setSelectedUser(user);
-    setShowPaymentModal(true);
-  };
 
   const handleDeleteUser = (user) => {
     setSelectedUser(user);
@@ -105,7 +99,6 @@ const Users = () => {
 
   const handleUserSaved = () => {
     setShowUserModal(false);
-    setShowPaymentModal(false);
     setSelectedUser(null);
     loadUsers(pagination.page);
   };
@@ -266,13 +259,6 @@ const Users = () => {
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handlePaymentSettings(user)}
-                        className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
-                        title="Configurações de pagamento"
-                      >
-                        <Settings className="w-4 h-4" />
-                      </button>
-                      <button
                         onClick={() => handleDeleteUser(user)}
                         className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                         title="Desativar usuário"
@@ -348,13 +334,6 @@ const Users = () => {
         />
       )}
 
-      {showPaymentModal && (
-        <PaymentSettingsModal
-          user={selectedUser}
-          onClose={() => setShowPaymentModal(false)}
-          onSave={handleUserSaved}
-        />
-      )}
 
       {showConfirmModal && (
         <ConfirmModal

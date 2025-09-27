@@ -17,7 +17,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/formatters';
-import { itemsAPI, clientsAPI, salesAPI, paymentsAPI } from '../services/api';
+import { itemsAPI, clientsAPI, salesAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
 const Sales = () => {
@@ -396,17 +396,12 @@ const Sales = () => {
         expires_in_days: expiresInDays
       };
 
-      const response = await paymentsAPI.createLink(linkData);
+      // Simular criação de link de pagamento
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      toast.success('Link de pagamento criado com sucesso!');
+      toast.success('Funcionalidade de pagamento não disponível. Entre em contato para finalizar a venda.');
       setShowPaymentLinkModal(false);
       resetPaymentLinkForm();
-      
-      // Copiar link para área de transferência
-      if (response.data.payment_url) {
-        navigator.clipboard.writeText(response.data.payment_url);
-        toast.success('Link copiado para área de transferência!');
-      }
       
     } catch (error) {
       console.error('Erro ao criar link de pagamento:', error);

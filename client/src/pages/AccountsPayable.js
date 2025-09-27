@@ -5,7 +5,6 @@ import toast from 'react-hot-toast';
 import { formatCurrency, formatDate, isOverdue } from '../utils/formatters';
 import AccountModal from '../components/AccountModal';
 import ConfirmModal from '../components/ConfirmModal';
-import PayAccountModal from '../components/PayAccountModal';
 
 const AccountsPayable = () => {
   const [accounts, setAccounts] = useState([]);
@@ -327,16 +326,6 @@ const AccountsPayable = () => {
           message={`Tem certeza que deseja deletar a conta "${selectedAccount?.description}"? Esta ação não pode ser desfeita.`}
         />
 
-        <PayAccountModal
-          isOpen={showPayModal}
-          onClose={() => {
-            setShowPayModal(false);
-            setAccountToPay(null);
-          }}
-          onConfirm={handlePayAccount}
-          account={accountToPay}
-          type="payable"
-        />
       </div>
     </div>
   );
