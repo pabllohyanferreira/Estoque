@@ -120,9 +120,8 @@ function showNextSteps() {
   console.log(`   http://localhost:${config.PORT}`);
   console.log('');
   console.log('5. Fazer login com:');
-  console.log('   Email: admin@lojify.com');
-  console.log('   Senha: admin123');
-  console.log('   ⚠️  ALTERE AS CREDENCIAIS PADRÃO IMEDIATAMENTE!');
+  console.log('   Email: detty@lojify.com');
+  console.log('   Senha: 12345');
   console.log('');
   console.log('📚 Consulte o arquivo CONFIGURACAO_SEGURANCA.md para mais detalhes');
   console.log('');

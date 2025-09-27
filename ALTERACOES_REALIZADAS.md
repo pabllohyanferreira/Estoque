@@ -29,9 +29,9 @@ Remover todas as funcionalidades de pagamento (Mercado Pago e links de pagamento
 ### 2. **Alteração de Credenciais de Login**
 
 #### Modificações em `server/database/init.js`:
-- **Usuário**: Alterado para credenciais personalizadas
-- **Senha**: Alterada para senha segura personalizada
-- **Nome**: Alterado para nome personalizado
+- **Usuário**: `detty@lojify.com`
+- **Senha**: `12345`
+- **Nome**: `detty`
 
 ### 3. **Implementação de Sistema de Segurança**
 
@@ -86,8 +86,8 @@ npm start
 
 ### 3. **Login**
 - **URL**: http://localhost:5000
-- **Email**: Configure através do script de configuração
-- **Senha**: Configure através do script de configuração
+- **Email**: detty@lojify.com
+- **Senha**: 12345
 
 ## 🛡️ Recursos de Segurança Implementados
 

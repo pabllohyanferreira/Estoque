@@ -27,7 +27,8 @@ npm start
 
 ## 🔐 Login Padrão
 
-Configure as credenciais através do script de configuração de segurança.
+- **Email**: detty@lojify.com
+- **Senha**: 12345
 
 ## 📁 Estrutura
 

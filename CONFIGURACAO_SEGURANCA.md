@@ -7,8 +7,8 @@ Este documento descreve as configurações de segurança implementadas no sistem
 ## 🚀 Configurações Implementadas
 
 ### 1. **Autenticação e Autorização**
-- **Usuário padrão:** Configure através do script de configuração
-- **Senha padrão:** Configure através do script de configuração
+- **Usuário padrão:** detty@lojify.com
+- **Senha padrão:** 12345
 - **JWT Token:** Expira em 24 horas
 - **Rate Limiting:** Máximo 5 tentativas de login por IP a cada 15 minutos
 

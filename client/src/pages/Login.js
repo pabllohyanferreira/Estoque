@@ -157,16 +157,6 @@ const Login = ({ onLoginSuccess }) => {
             </button>
           </form>
 
-          {/* Informações do Admin */}
-          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
-            <h3 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
-              👤 Acesso Administrativo
-            </h3>
-            <p className="text-xs text-blue-700 dark:text-blue-300">
-              <strong>Email:</strong> admin@lojify.com<br />
-              <strong>Senha:</strong> admin123
-            </p>
-          </div>
         </div>
 
         {/* Footer */}
