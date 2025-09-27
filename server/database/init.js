@@ -30,12 +30,6 @@ function initializeDatabase() {
           password TEXT NOT NULL,
           role TEXT DEFAULT 'reseller',
           status TEXT DEFAULT 'active',
-          mercadopago_access_token TEXT,
-          mercadopago_public_key TEXT,
-          pix_key TEXT,
-          pix_merchant_name TEXT,
-          pix_merchant_city TEXT,
-          pix_merchant_city_code TEXT,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           last_login DATETIME
@@ -210,65 +204,15 @@ function initializeDatabase() {
         }
       });
 
-      // Tabela de Links de Pagamento
-      db.run(`
-        CREATE TABLE IF NOT EXISTS payment_links (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          payment_id TEXT UNIQUE NOT NULL,
-          amount REAL NOT NULL,
-          payment_method TEXT NOT NULL,
-          status TEXT DEFAULT 'pending',
-          customer_name TEXT NOT NULL,
-          customer_email TEXT NOT NULL,
-          customer_document TEXT NOT NULL,
-          description TEXT,
-          user_id INTEGER,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (user_id) REFERENCES users(id)
-        )
-      `, (err) => {
-        if (err) {
-          console.error('❌ Erro ao criar tabela payment_links:', err);
-        } else {
-          console.log('✅ Tabela payment_links criada/verificada');
-        }
-      });
-
-      // Tabela de Transações de Pagamento
-      db.run(`
-        CREATE TABLE IF NOT EXISTS payment_transactions (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          payment_id TEXT UNIQUE NOT NULL,
-          amount REAL NOT NULL,
-          payment_method TEXT NOT NULL,
-          status TEXT DEFAULT 'pending',
-          customer_name TEXT NOT NULL,
-          customer_email TEXT NOT NULL,
-          customer_document TEXT NOT NULL,
-          description TEXT,
-          payment_data TEXT,
-          user_id INTEGER,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (user_id) REFERENCES users(id)
-        )
-      `, (err) => {
-        if (err) {
-          console.error('❌ Erro ao criar tabela payment_transactions:', err);
-        } else {
-          console.log('✅ Tabela payment_transactions criada/verificada');
-          createAdminUser();
-        }
-      });
+      createAdminUser();
     }
     
     function createAdminUser() {
       // Criar usuário admin padrão se não existir
       const bcrypt = require('bcrypt');
-      const adminPassword = bcrypt.hashSync('admin123', 10);
+      const adminPassword = bcrypt.hashSync('jr270616', 10);
       
-      db.get('SELECT id FROM users WHERE email = ?', ['admin@lojify.com'], (err, row) => {
+      db.get('SELECT id FROM users WHERE email = ?', ['detty@lojify.com'], (err, row) => {
         if (err) {
           console.error('❌ Erro ao verificar usuário admin:', err);
           reject(err);
@@ -276,14 +220,14 @@ function initializeDatabase() {
           db.run(`
             INSERT INTO users (name, email, password, role, status) 
             VALUES (?, ?, ?, ?, ?)
-          `, ['Administrador', 'admin@lojify.com', adminPassword, 'admin', 'active'], (err) => {
+          `, ['detty', 'detty@lojify.com', adminPassword, 'admin', 'active'], (err) => {
             if (err) {
               console.error('❌ Erro ao criar usuário admin:', err);
               reject(err);
             } else {
               console.log('✅ Usuário admin criado com sucesso');
-              console.log('   Email: admin@lojify.com');
-              console.log('   Senha: admin123');
+              console.log('   Email: detty@lojify.com');
+              console.log('   Senha: jr270616');
               resolve();
             }
           });

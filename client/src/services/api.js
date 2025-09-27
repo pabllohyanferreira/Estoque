@@ -141,13 +141,5 @@ export const salesAPI = {
   getStats: (params = {}) => api.get('/sales/stats/summary', { params })
 };
 
-// Serviços para Links de Pagamento
-export const paymentsAPI = {
-  createLink: (data) => api.post('/payments/create-link', data),
-  getAll: (params = {}) => api.get('/payments', { params }),
-  getById: (id) => api.get(`/payments/${id}`),
-  cancel: (id) => api.patch(`/payments/${id}/cancel`),
-  getStats: (params = {}) => api.get('/payments/stats/summary', { params })
-};
 
 export default api; 
