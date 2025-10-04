@@ -374,7 +374,7 @@ const PublicCatalog = () => {
                         {/* Imagem do Produto */}
                         <div className="relative aspect-square bg-gray-100 dark:bg-gray-700">
                     <ProductImage 
-                      imageData={item.image_data} 
+                      imageData={item.image_url} 
                       alt={item.name}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             fallbackClassName="w-full h-full text-blue-600 dark:text-blue-400"
@@ -454,7 +454,7 @@ const PublicCatalog = () => {
                           {/* Imagem */}
                           <div className="relative w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden flex-shrink-0">
                             <ProductImage 
-                              imageData={item.image_data} 
+                              imageData={item.image_url} 
                               alt={item.name}
                               className="w-full h-full object-cover"
                               fallbackClassName="w-full h-full text-blue-600 dark:text-blue-400"
@@ -576,7 +576,7 @@ const PublicCatalog = () => {
                   {/* Imagem */}
                   <div className="aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
                     <ProductImage 
-                      imageData={selectedProduct.image_data} 
+                      imageData={selectedProduct.image_url} 
                       alt={selectedProduct.name}
                       className="w-full h-full object-cover"
                       fallbackClassName="w-full h-full text-blue-600 dark:text-blue-400"

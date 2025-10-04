@@ -146,9 +146,10 @@ router.post('/', getUserDatabase, upload.single('image'), [
   });
 
   // Processar imagem se enviada
-  let image_data = null;
+  let image_url = null;
   if (req.file) {
-    image_data = req.file.buffer;
+    // Converter buffer para base64
+    image_url = 'data:image/jpeg;base64,' + req.file.buffer.toString('base64');
   }
 
   // Converter valores para os tipos corretos
@@ -179,16 +180,40 @@ router.post('/', getUserDatabase, upload.single('image'), [
   `;
 
   console.log('Executando query de criação:', query);
-  console.log('Parâmetros da query:', [name, description, category, priceFloat, 0, installmentsInt, quantityInt, minQuantityInt, barcode, barcode, image_data ? 'data:image/jpeg;base64,' + image_data.toString('base64') : null]);
+  console.log('Parâmetros da query:', [name, description, category, priceFloat, 0, installmentsInt, quantityInt, minQuantityInt, barcode, barcode, image_url]);
 
   try {
-    req.userDb.run(query, [name, description, category, priceFloat, 0, installmentsInt, quantityInt, minQuantityInt, barcode, barcode, image_data ? 'data:image/jpeg;base64,' + image_data.toString('base64') : null], function(err) {
+    req.userDb.run(query, [name, description, category, priceFloat, 0, installmentsInt, quantityInt, minQuantityInt, barcode, barcode, image_url], function(err) {
       if (err) {
         console.error('Erro no banco de dados ao criar item:', err);
         return res.status(500).json({ error: 'Erro ao criar item', details: err.message });
       }
       
       console.log('Item criado com sucesso, ID:', this.lastID);
+      
+      // Sincronizar com banco principal para demonstração
+      const sqlite3 = require('sqlite3').verbose();
+      const path = require('path');
+      const mainDbPath = path.join(__dirname, '../database/estoque.db');
+      const mainDb = new sqlite3.Database(mainDbPath);
+      
+      const syncQuery = `
+        INSERT OR REPLACE INTO items (id, name, description, category, price, cost, installments, stock, min_stock, barcode, sku, image_url, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+      `;
+      
+      mainDb.run(syncQuery, [
+        this.lastID, name, description, category, priceFloat, 0, installmentsInt, 
+        quantityInt, minQuantityInt, barcode, barcode, 
+        image_data ? 'data:image/jpeg;base64,' + image_data.toString('base64') : null
+      ], (syncErr) => {
+        if (syncErr) {
+          console.error('Erro ao sincronizar com banco principal:', syncErr);
+        } else {
+          console.log('✅ Produto sincronizado com banco principal para demonstração');
+        }
+        mainDb.close();
+      });
       
       // Registrar movimentação inicial
       if (quantityInt > 0) {
@@ -294,23 +319,24 @@ router.put('/:id', getUserDatabase, upload.single('image'), [
   }
 
   // Processar imagem se enviada
-  let image_data = null;
+  let image_url = null;
   if (req.file) {
-    image_data = req.file.buffer;
+    // Converter buffer para base64
+    image_url = 'data:image/jpeg;base64,' + req.file.buffer.toString('base64');
   }
 
   // Se não há nova imagem, manter a existente
   let query;
   let params;
   
-  if (image_data) {
+  if (image_url) {
     query = `
       UPDATE items 
       SET name = ?, description = ?, category = ?, price = ?, installments = ?, 
           min_stock = ?, barcode = ?, sku = ?, image_url = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `;
-    params = [name, description, category, priceFloat, installmentsInt, minQuantityInt, barcode, barcode, 'data:image/jpeg;base64,' + image_data.toString('base64'), id];
+    params = [name, description, category, priceFloat, installmentsInt, minQuantityInt, barcode, barcode, image_url, id];
   } else {
     query = `
       UPDATE items 
@@ -335,6 +361,30 @@ router.put('/:id', getUserDatabase, upload.single('image'), [
       }
       
       console.log('Item atualizado com sucesso. Linhas afetadas:', this.changes);
+      
+      // Sincronizar com banco principal para demonstração
+      const sqlite3 = require('sqlite3').verbose();
+      const path = require('path');
+      const mainDbPath = path.join(__dirname, '../database/estoque.db');
+      const mainDb = new sqlite3.Database(mainDbPath);
+      
+      const syncQuery = `
+        INSERT OR REPLACE INTO items (id, name, description, category, price, cost, installments, stock, min_stock, barcode, sku, image_url, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+      `;
+      
+      mainDb.run(syncQuery, [
+        id, name, description, category, priceFloat, 0, installmentsInt, 
+        0, minQuantityInt, barcode, barcode, 
+        image_data ? 'data:image/jpeg;base64,' + image_data.toString('base64') : null
+      ], (syncErr) => {
+        if (syncErr) {
+          console.error('Erro ao sincronizar atualização com banco principal:', syncErr);
+        } else {
+          console.log('✅ Produto atualizado sincronizado com banco principal para demonstração');
+        }
+        mainDb.close();
+      });
       
       res.json({ 
         message: 'Item atualizado com sucesso',

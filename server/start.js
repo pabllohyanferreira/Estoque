@@ -25,8 +25,10 @@ const clientRoutes = require('./routes/clients');
 const accountRoutes = require('./routes/accounts');
 const stockMovementRoutes = require('./routes/stockMovements');
 const salesRoutes = require('./routes/sales');
+const settingsRoutes = require('./routes/settings');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
+const publicRoutes = require('./routes/public');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -62,7 +64,11 @@ initializeDatabase().then(() => {
   app.use('/api/clients', clientRoutes);
   app.use('/api/accounts', accountRoutes);
   app.use('/api/stock-movements', stockMovementRoutes);
-  app.use('/api/sales', salesRoutes);
+app.use('/api/sales', salesRoutes);
+app.use('/api/settings', settingsRoutes);
+
+// Rotas públicas (sem autenticação)
+app.use('/api/public', publicRoutes);
 
   // Rota de health check
   app.get('/api/health', (req, res) => {

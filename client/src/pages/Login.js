@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Mail, Store, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Eye, EyeOff, Lock, Mail, Store, ArrowRight, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authAPI } from '../services/api';
 
@@ -11,7 +11,22 @@ const Login = ({ onLoginSuccess }) => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  // Verificar se o usuário foi redirecionado por token expirado
+  useEffect(() => {
+    if (searchParams.get('expired') === 'true') {
+      toast('Sua sessão expirou. Faça login novamente.', {
+        icon: '⏰',
+        style: {
+          background: '#f59e0b',
+          color: '#fff',
+        },
+        duration: 5000,
+      });
+    }
+  }, [searchParams]);
 
   const handleChange = (e) => {
     setFormData({
@@ -48,7 +63,26 @@ const Login = ({ onLoginSuccess }) => {
       }
     } catch (error) {
       console.error('Erro no login:', error);
-      toast.error(error.response?.data?.message || 'Erro ao fazer login');
+      console.error('Detalhes do erro:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        config: error.config
+      });
+      
+      let errorMessage = 'Erro ao fazer login';
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.code === 'ERR_NETWORK') {
+        errorMessage = 'Erro de conexão. Verifique se o servidor está rodando.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -72,6 +106,23 @@ const Login = ({ onLoginSuccess }) => {
 
         {/* Card de Login */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
+          {/* Banner de Token Expirado */}
+          {searchParams.get('expired') === 'true' && (
+            <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+              <div className="flex items-center">
+                <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mr-3" />
+                <div>
+                  <h3 className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                    Sessão Expirada
+                  </h3>
+                  <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                    Sua sessão expirou por segurança. Faça login novamente para continuar.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="mb-6">
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
               Bem-vindo de volta

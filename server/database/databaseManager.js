@@ -76,6 +76,7 @@ class DatabaseManager {
           phone TEXT,
           address TEXT,
           document TEXT,
+          type TEXT DEFAULT 'individual',
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
@@ -103,9 +104,11 @@ class DatabaseManager {
           due_date DATE NOT NULL,
           status TEXT DEFAULT 'pending',
           client_id INTEGER,
+          sale_id INTEGER,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (client_id) REFERENCES clients(id)
+          FOREIGN KEY (client_id) REFERENCES clients(id),
+          FOREIGN KEY (sale_id) REFERENCES sales(id)
         )
       `,
 
@@ -127,9 +130,15 @@ class DatabaseManager {
         CREATE TABLE IF NOT EXISTS sales (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           client_id INTEGER,
+          client_name TEXT,
+          title TEXT,
           total_amount REAL NOT NULL,
+          notes TEXT,
           payment_method TEXT,
           installments INTEGER DEFAULT 1,
+          installment_value REAL,
+          installment_payment_method TEXT,
+          due_date DATETIME,
           status TEXT DEFAULT 'completed',
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -143,8 +152,10 @@ class DatabaseManager {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           sale_id INTEGER NOT NULL,
           item_id INTEGER NOT NULL,
+          item_name TEXT,
           quantity INTEGER NOT NULL,
-          price REAL NOT NULL,
+          unit_price REAL NOT NULL,
+          total_price REAL NOT NULL,
           FOREIGN KEY (sale_id) REFERENCES sales(id),
           FOREIGN KEY (item_id) REFERENCES items(id)
         )
@@ -183,6 +194,18 @@ class DatabaseManager {
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
+      `,
+
+      // Tabela de Configurações do Usuário
+      `
+        CREATE TABLE IF NOT EXISTS user_settings (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          setting_key TEXT NOT NULL,
+          setting_value TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(setting_key)
+        )
       `
     ];
 
@@ -193,8 +216,54 @@ class DatabaseManager {
         } else {
           console.log(`✅ Tabela ${index + 1} criada/verificada para usuário`);
         }
+        
+        // Aplicar migrações após criar todas as tabelas
+        if (index === tables.length - 1) {
+          this.runMigrations(db);
+        }
       });
     });
+  }
+
+  // Executar migrações para bancos existentes
+  runMigrations(db) {
+    console.log('🔄 Executando migrações para banco do usuário...');
+    
+    const migrations = [
+      "ALTER TABLE clients ADD COLUMN type TEXT DEFAULT 'individual'",
+      "ALTER TABLE accounts_receivable ADD COLUMN sale_id INTEGER",
+      "ALTER TABLE sales ADD COLUMN client_name TEXT",
+      "ALTER TABLE sales ADD COLUMN title TEXT", 
+      "ALTER TABLE sales ADD COLUMN notes TEXT",
+      "ALTER TABLE sales ADD COLUMN installment_value REAL",
+      "ALTER TABLE sales ADD COLUMN installment_payment_method TEXT",
+      "ALTER TABLE sales ADD COLUMN due_date DATETIME",
+      "ALTER TABLE sale_items ADD COLUMN item_name TEXT",
+      "ALTER TABLE sale_items ADD COLUMN unit_price REAL",
+      "ALTER TABLE sale_items ADD COLUMN total_price REAL"
+    ];
+
+    let migrationIndex = 0;
+    
+    const runNextMigration = () => {
+      if (migrationIndex >= migrations.length) {
+        console.log('✅ Migrações do banco do usuário concluídas');
+        return;
+      }
+      
+      const migration = migrations[migrationIndex];
+      db.run(migration, (err) => {
+        if (err && !err.message.includes('duplicate column name')) {
+          console.error(`❌ Erro na migração ${migration}:`, err.message);
+        } else if (!err) {
+          console.log(`✅ Migração aplicada: ${migration}`);
+        }
+        migrationIndex++;
+        runNextMigration();
+      });
+    };
+    
+    runNextMigration();
   }
 
   // Fechar todas as conexões

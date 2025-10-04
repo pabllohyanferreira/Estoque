@@ -47,11 +47,25 @@ api.interceptors.response.use(
     
     // Tratamento para token expirado ou inválido
     if (error.response?.status === 401 || error.response?.status === 403) {
-      console.error('🔐 Erro de autenticação - redirecionando para login');
+      const errorData = error.response?.data;
+      console.error('🔐 Erro de autenticação:', errorData);
+      
+      // Limpar dados de autenticação
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
+      
+      // Mostrar mensagem específica se for token expirado
+      if (errorData?.error === 'Token expirado') {
+        console.log('⏰ Token expirado - redirecionando para login');
+        // Aqui você pode adicionar um toast ou notificação
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login?expired=true';
+        }
+      } else {
+        console.log('🔐 Token inválido - redirecionando para login');
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
       }
     }
     
@@ -141,5 +155,14 @@ export const salesAPI = {
   getStats: (params = {}) => api.get('/sales/stats/summary', { params })
 };
 
+// Serviços para Configurações
+export const settingsAPI = {
+  getAll: () => api.get('/settings'),
+  getByKey: (key) => api.get(`/settings/${key}`),
+  save: (settings) => api.post('/settings', { settings }),
+  saveByKey: (key, value) => api.put(`/settings/${key}`, { value }),
+  delete: (key) => api.delete(`/settings/${key}`),
+  deleteAll: () => api.delete('/settings')
+};
 
 export default api; 

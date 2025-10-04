@@ -6,7 +6,11 @@ const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
+  console.log('🔐 Verificando autenticação para:', req.path);
+  console.log('🔑 Token recebido:', token ? 'SIM' : 'NÃO');
+
   if (!token) {
+    console.log('❌ Token não fornecido');
     return res.status(401).json({
       success: false,
       message: 'Token de acesso necessário'
@@ -15,11 +19,14 @@ const authenticateToken = (req, res, next) => {
 
   jwt.verify(token, process.env.JWT_SECRET || 'lojify-secret-key', (err, decoded) => {
     if (err) {
+      console.log('❌ Token inválido:', err.message);
       return res.status(403).json({
         success: false,
         message: 'Token inválido ou expirado'
       });
     }
+
+    console.log('✅ Token válido, usuário ID:', decoded.userId);
 
     // Buscar usuário no banco para verificar se ainda está ativo
     db.get(

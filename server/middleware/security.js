@@ -5,7 +5,7 @@ const cors = require('cors');
 // Rate limiting para prevenir ataques de força bruta
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 5, // máximo 5 tentativas por IP
+  max: 50, // máximo 50 tentativas por IP (aumentado para desenvolvimento)
   message: {
     error: 'Muitas tentativas de login. Tente novamente em 15 minutos.',
     retryAfter: '15 minutos'
@@ -18,7 +18,7 @@ const loginLimiter = rateLimit({
 // Rate limiting geral para API
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // máximo 100 requests por IP
+  max: 500, // máximo 500 requests por IP (aumentado para desenvolvimento)
   message: {
     error: 'Muitas requisições. Tente novamente em 15 minutos.',
     retryAfter: '15 minutos'

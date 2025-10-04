@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Edit, Trash2, Receipt, Calendar, Users, CheckCircle, ShoppingCart, X } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Plus, Search, Filter, Edit, Trash2, Receipt, Calendar, Users, CheckCircle, ShoppingCart, X, ChevronDown, ChevronRight } from 'lucide-react';
 import { accountsReceivableAPI, clientsAPI, salesAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import { formatCurrency, formatDate, isOverdue } from '../utils/formatters';
 import AccountModal from '../components/AccountModal';
 import ConfirmModal from '../components/ConfirmModal';
+import PayAccountModal from '../components/PayAccountModal';
+import useScroll from '../hooks/useScroll';
 
 const AccountsReceivable = () => {
   const [accounts, setAccounts] = useState([]);
@@ -26,9 +28,19 @@ const AccountsReceivable = () => {
   const [selectedClientSales, setSelectedClientSales] = useState([]);
   const [loadingSales, setLoadingSales] = useState(false);
   
-  // Estados para organização por cliente
-  const [groupByClient, setGroupByClient] = useState(false);
+  // Estados para organização por cliente (sempre ativo)
+  const [groupByClient, setGroupByClient] = useState(true);
   const [expandedClients, setExpandedClients] = useState(new Set());
+  
+  // Estados para controlar gavetas das vendas
+  const [expandedSales, setExpandedSales] = useState(new Set());
+  
+  // Hook personalizado para scroll
+  const { scrollContainerRef, scrollStyles, scrollClasses } = useScroll({
+    scrollSpeed: 0.5,
+    smooth: true,
+    maxHeight: 600
+  });
 
   useEffect(() => {
     loadData();
@@ -90,18 +102,49 @@ const AccountsReceivable = () => {
   const getAccountsByClient = () => {
     const grouped = {};
     
+    console.log('🔄 Agrupando contas por cliente...');
+    console.log('📊 Total de contas:', accounts.length);
+    console.log('📋 Contas para agrupar:', accounts);
+    
     accounts.forEach(account => {
+      console.log('🔍 Processando conta:', {
+        id: account.id,
+        description: account.description,
+        sale_id: account.sale_id,
+        status: account.status,
+        amount: account.amount
+      });
+      
       const clientId = account.client_id;
       const clientName = account.client_name || 'Cliente não informado';
       
-      // Extrair número da venda da descrição (ex: "Venda #9 - Parcela 1/10" -> "Venda #9")
-      const saleMatch = account.description.match(/Venda #(\d+)/);
-      const saleId = saleMatch ? saleMatch[1] : 'outros';
-      const saleKey = saleMatch ? `Venda #${saleId}` : 'outros';
+      // Usar o sale_id diretamente da conta, ou extrair da descrição como fallback
+      let saleId = account.sale_id;
+      let saleKey = 'outros';
+      
+      if (saleId) {
+        saleKey = `Venda #${saleId}`;
+        console.log('✅ Usando sale_id direto:', saleId, 'saleKey:', saleKey);
+      } else {
+        // Fallback: extrair da descrição se não tiver sale_id
+        const saleMatch = account.description.match(/Venda #(\d+)/);
+        if (saleMatch) {
+          saleId = saleMatch[1];
+          saleKey = `Venda #${saleId}`;
+          console.log('⚠️ Usando sale_id extraído da descrição:', saleId, 'saleKey:', saleKey);
+        } else {
+          console.log('❌ Nenhum sale_id encontrado para conta:', account.description);
+        }
+      }
       
       // Buscar título da venda correspondente
       const correspondingSale = sales.find(sale => sale.id === parseInt(saleId));
       const saleTitle = correspondingSale?.title || saleKey;
+      
+      console.log('🔍 Buscando venda com ID:', saleId, 'parseInt:', parseInt(saleId));
+      console.log('📋 Vendas disponíveis:', sales.map(s => ({ id: s.id, title: s.title })));
+      console.log('✅ Venda encontrada:', correspondingSale);
+      console.log('📝 Título final:', saleTitle);
       
       if (!grouped[clientId]) {
         grouped[clientId] = {
@@ -177,6 +220,16 @@ const AccountsReceivable = () => {
       newExpanded.add(clientId);
     }
     setExpandedClients(newExpanded);
+  };
+
+  const toggleSaleExpansion = (saleKey) => {
+    const newExpanded = new Set(expandedSales);
+    if (newExpanded.has(saleKey)) {
+      newExpanded.delete(saleKey);
+    } else {
+      newExpanded.add(saleKey);
+    }
+    setExpandedSales(newExpanded);
   };
 
   // Função para filtrar contas baseado nos filtros ativos
@@ -275,14 +328,125 @@ const AccountsReceivable = () => {
 
   const handlePayAccount = async () => {
     try {
-      await accountsReceivableAPI.markAsPaid(accountToPay.id);
+      console.log('🔄 Tentando marcar conta como paga:', accountToPay);
+      const response = await accountsReceivableAPI.markAsPaid(accountToPay.id);
+      console.log('✅ Resposta da API:', response);
       toast.success('Conta marcada como paga com sucesso!');
       setShowPayModal(false);
       setAccountToPay(null);
-      loadAccounts();
+      
+      // Recarregar dados completos
+      console.log('🔄 Recarregando dados após pagamento individual...');
+      await loadData();
     } catch (error) {
       toast.error('Erro ao marcar conta como paga');
-      console.error('Erro ao marcar conta como paga:', error);
+      console.error('❌ Erro ao marcar conta como paga:', error);
+    }
+  };
+
+  // Função para deletar venda e todas suas parcelas
+  const handleDeleteSale = async (saleId, saleTitle) => {
+    try {
+      console.log('🗑️ Iniciando deleção da venda:', saleId);
+      
+      // Buscar todas as parcelas desta venda
+      const saleAccounts = accounts.filter(account => 
+        (account.sale_id == saleId || account.sale_id === saleId)
+      );
+
+      console.log('📋 Parcelas encontradas para deletar:', saleAccounts.length);
+      console.log('📋 Detalhes das parcelas:', saleAccounts);
+
+      if (saleAccounts.length === 0) {
+        console.log('❌ Nenhuma parcela encontrada para esta venda');
+        toast('Não há parcelas para esta venda', {
+          icon: 'ℹ️',
+          style: {
+            background: '#3b82f6',
+            color: '#fff',
+          },
+        });
+        return;
+      }
+
+      // Confirmar deleção
+      const confirmMessage = `⚠️ ATENÇÃO: Esta ação não pode ser desfeita!\n\nDeseja deletar a venda "${saleTitle}" e todas as suas ${saleAccounts.length} parcelas?\n\nTotal a ser deletado: ${formatCurrency(saleAccounts.reduce((sum, acc) => sum + acc.amount, 0))}`;
+      
+      if (window.confirm(confirmMessage)) {
+        console.log('✅ Usuário confirmou deleção da venda');
+        
+        // Deletar todas as parcelas
+        const deletePromises = saleAccounts.map(account => {
+          console.log('🗑️ Deletando parcela:', account.id);
+          return accountsReceivableAPI.delete(account.id);
+        });
+
+        await Promise.all(deletePromises);
+        
+        console.log('✅ Todas as parcelas foram deletadas com sucesso');
+        toast.success(`Venda "${saleTitle}" e suas ${saleAccounts.length} parcelas foram deletadas com sucesso!`);
+        
+        // Recarregar dados completos
+        console.log('🔄 Recarregando dados...');
+        await loadData();
+      }
+    } catch (error) {
+      toast.error('Erro ao deletar venda');
+      console.error('❌ Erro ao deletar venda:', error);
+    }
+  };
+
+  // Função para pagar todas as parcelas de uma venda
+  const handlePayAllInstallments = async (saleId, saleTitle) => {
+    try {
+      console.log('🔄 Iniciando pagamento em lote para venda:', saleId);
+      console.log('📊 Contas disponíveis:', accounts.length);
+      console.log('🔍 Buscando contas com sale_id:', saleId);
+      
+      // Buscar todas as contas pendentes desta venda
+      const pendingAccounts = accounts.filter(account => 
+        (account.sale_id == saleId || account.sale_id === saleId) && account.status !== 'paid'
+      );
+
+      console.log('📋 Contas pendentes encontradas:', pendingAccounts.length);
+      console.log('📋 Detalhes das contas pendentes:', pendingAccounts);
+
+      if (pendingAccounts.length === 0) {
+        console.log('❌ Nenhuma conta pendente encontrada');
+        toast('Não há parcelas pendentes para esta venda', {
+          icon: 'ℹ️',
+          style: {
+            background: '#3b82f6',
+            color: '#fff',
+          },
+        });
+        return;
+      }
+
+      // Confirmar pagamento em lote
+      const confirmMessage = `Deseja marcar todas as ${pendingAccounts.length} parcelas pendentes da venda "${saleTitle}" como pagas?\n\nTotal: ${formatCurrency(pendingAccounts.reduce((sum, acc) => sum + acc.amount, 0))}`;
+      
+      if (window.confirm(confirmMessage)) {
+        console.log('✅ Usuário confirmou pagamento em lote');
+        
+        // Pagar todas as parcelas
+        const promises = pendingAccounts.map(account => {
+          console.log('💳 Pagando conta:', account.id);
+          return accountsReceivableAPI.markAsPaid(account.id);
+        });
+
+        await Promise.all(promises);
+        
+        console.log('✅ Todas as parcelas foram pagas com sucesso');
+        toast.success(`${pendingAccounts.length} parcelas marcadas como pagas com sucesso!`);
+        
+        // Recarregar dados completos
+        console.log('🔄 Recarregando dados...');
+        await loadData();
+      }
+    } catch (error) {
+      toast.error('Erro ao pagar parcelas em lote');
+      console.error('❌ Erro ao pagar parcelas em lote:', error);
     }
   };
 
@@ -377,17 +541,10 @@ const AccountsReceivable = () => {
                 ))}
               </select>
               
-              <button
-                onClick={() => setGroupByClient(!groupByClient)}
-                className={`px-6 py-3 font-semibold rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center ${
-                  groupByClient 
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white focus:ring-blue-500' 
-                    : 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white focus:ring-gray-500'
-                }`}
-              >
+              <div className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl shadow-lg flex items-center">
                 <Users className="h-4 w-4 mr-2" />
-                {groupByClient ? 'Lista Simples' : 'Agrupar por Cliente'}
-              </button>
+                Agrupado por Cliente
+              </div>
               
               <button
                 onClick={loadAccounts}
@@ -494,8 +651,11 @@ const AccountsReceivable = () => {
                           <div className="p-4 space-y-4">
                             {clientGroup.sales.map((saleGroup) => (
                               <div key={saleGroup.saleKey} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden">
-                                {/* Header da Venda */}
-                                <div className="p-3 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border-b border-gray-200 dark:border-gray-600">
+                                {/* Header da Venda - Completo */}
+                                <div 
+                                  className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gradient-to-r hover:from-purple-100 hover:to-indigo-100 dark:hover:from-purple-900/30 dark:hover:to-indigo-900/30 transition-colors"
+                                  onClick={() => toggleSaleExpansion(saleGroup.saleKey)}
+                                >
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center space-x-3">
                                       <div className="p-2 bg-purple-500 rounded-lg">
@@ -510,32 +670,76 @@ const AccountsReceivable = () => {
                                         </p>
                                       </div>
                                     </div>
-                                    <div className="flex items-center space-x-3 text-xs">
-                                      <div className="text-right">
-                                        <div className="text-gray-600 dark:text-gray-400">Pendente</div>
-                                        <div className="font-semibold text-yellow-600 dark:text-yellow-400">
-                                          {formatCurrency(saleGroup.pendingAmount)}
+                                    
+                                    <div className="flex items-center space-x-4">
+                                      {/* Resumo Financeiro */}
+                                      <div className="flex items-center space-x-3 text-xs">
+                                        <div className="text-right">
+                                          <div className="text-gray-600 dark:text-gray-400">Pendente</div>
+                                          <div className="font-semibold text-yellow-600 dark:text-yellow-400">
+                                            {formatCurrency(saleGroup.pendingAmount)}
+                                          </div>
+                                        </div>
+                                        <div className="text-right">
+                                          <div className="text-gray-600 dark:text-gray-400">Vencido</div>
+                                          <div className="font-semibold text-red-600 dark:text-red-400">
+                                            {formatCurrency(saleGroup.overdueAmount)}
+                                          </div>
+                                        </div>
+                                        <div className="text-right">
+                                          <div className="text-gray-600 dark:text-gray-400">Pago</div>
+                                          <div className="font-semibold text-green-600 dark:text-green-400">
+                                            {formatCurrency(saleGroup.paidAmount)}
+                                          </div>
                                         </div>
                                       </div>
-                                      <div className="text-right">
-                                        <div className="text-gray-600 dark:text-gray-400">Vencido</div>
-                                        <div className="font-semibold text-red-600 dark:text-red-400">
-                                          {formatCurrency(saleGroup.overdueAmount)}
+                                      
+                                      {/* Botões de Ação */}
+                                      <div className="flex items-center space-x-2">
+                                        {/* Botão para pagar todas as parcelas */}
+                                        {saleGroup.pendingAmount > 0 && (
+                                          <button
+                                            onClick={() => handlePayAllInstallments(saleGroup.saleId, saleGroup.saleTitle)}
+                                            className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-lg transition-colors flex items-center space-x-1"
+                                            title="Pagar todas as parcelas pendentes desta venda"
+                                          >
+                                            <CheckCircle className="h-3 w-3" />
+                                            <span>Pagar Todas</span>
+                                          </button>
+                                        )}
+                                        
+                                        {/* Botão para deletar venda */}
+                                        <button
+                                          onClick={() => handleDeleteSale(saleGroup.saleId, saleGroup.saleTitle)}
+                                          className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-lg transition-colors flex items-center space-x-1"
+                                          title="Deletar esta venda e todas suas parcelas"
+                                        >
+                                          <Trash2 className="h-3 w-3" />
+                                          <span>Deletar Venda</span>
+                                        </button>
+                                        
+                                        {/* Indicador de opções */}
+                                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                                          ou clique individualmente
                                         </div>
                                       </div>
-                                      <div className="text-right">
-                                        <div className="text-gray-600 dark:text-gray-400">Pago</div>
-                                        <div className="font-semibold text-green-600 dark:text-green-400">
-                                          {formatCurrency(saleGroup.paidAmount)}
-                                        </div>
+                                      
+                                      {/* Ícone de seta para expandir/contrair */}
+                                      <div className="flex items-center">
+                                        {expandedSales.has(saleGroup.saleKey) ? (
+                                          <ChevronDown className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                                        ) : (
+                                          <ChevronRight className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                                        )}
                                       </div>
                                     </div>
                                   </div>
                                 </div>
                                 
                                 {/* Lista de Parcelas da Venda */}
-                                <div className="overflow-x-auto">
-                                  <table className="w-full">
+                                {expandedSales.has(saleGroup.saleKey) && (
+                                  <div className="overflow-x-auto">
+                                    <table className="w-full">
                                     <thead className="bg-gray-50 dark:bg-gray-700">
                                       <tr>
                                         <th className="px-3 py-2 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider">
@@ -617,6 +821,7 @@ const AccountsReceivable = () => {
                                     </tbody>
                                   </table>
                                 </div>
+                                )}
                               </div>
                             ))}
                           </div>
@@ -629,7 +834,11 @@ const AccountsReceivable = () => {
             </div>
           ) : (
             // Visualização em Tabela Simples (original)
-            <div>
+            <div 
+              ref={scrollContainerRef}
+              className={scrollClasses}
+              style={scrollStyles}
+            >
               <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
@@ -661,8 +870,21 @@ const AccountsReceivable = () => {
                           <Receipt className="h-8 w-8 text-gray-400 dark:text-gray-500 mr-3" />
                           <div>
                             <div className="text-sm font-medium text-gray-900 dark:text-white">{account.description}</div>
-                            {account.category && (
-                              <div className="text-sm text-gray-500 dark:text-gray-400">{account.category}</div>
+                            {account.sale_title && (
+                              <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                                📦 {account.sale_title}
+                              </div>
+                            )}
+                            {account.payment_method && (
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                                💳 {getPaymentMethodLabel(account.payment_method)}
+                                {account.installments > 1 && ` • ${account.installments}x`}
+                              </div>
+                            )}
+                            {account.sale_date && (
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                                📅 Venda: {formatDate(account.sale_date)}
+                              </div>
                             )}
                           </div>
                         </div>
@@ -703,6 +925,30 @@ const AccountsReceivable = () => {
                               <ShoppingCart className="h-4 w-4 icon-action" />
                             </button>
                           )}
+                          
+                          {/* Botão para deletar venda (se houver sale_id) */}
+                          {account.sale_id && (
+                            <button
+                              onClick={() => handleDeleteSale(account.sale_id, account.sale_title || account.description)}
+                              className="text-red-600 hover:text-red-900 btn-action"
+                              title="Deletar esta venda e todas suas parcelas"
+                            >
+                              <Trash2 className="h-4 w-4 icon-action" />
+                            </button>
+                          )}
+                          
+                          {/* Botão para pagar todas as parcelas desta venda (se houver sale_id) */}
+                          {account.sale_id && account.status !== 'paid' && (
+                            <button
+                              onClick={() => handlePayAllInstallments(account.sale_id, account.sale_title || account.description)}
+                              className="text-blue-600 hover:text-blue-900 btn-action"
+                              title="Pagar todas as parcelas desta venda"
+                            >
+                              <CheckCircle className="h-4 w-4 icon-action" />
+                            </button>
+                          )}
+                          
+                          {/* Botão individual para pagar esta conta */}
                           {account.status !== 'paid' && (
                             <button
                               onClick={() => openPayModal(account)}
@@ -712,6 +958,7 @@ const AccountsReceivable = () => {
                               <CheckCircle className="h-4 w-4 icon-action" />
                             </button>
                           )}
+                          
                           <button
                             onClick={() => openEditModal(account)}
                             className="text-indigo-600 hover:text-indigo-900 btn-action"
@@ -770,6 +1017,15 @@ const AccountsReceivable = () => {
           message={`Tem certeza que deseja deletar a conta "${selectedAccount?.description}"? Esta ação não pode ser desfeita.`}
         />
 
+        <PayAccountModal
+          isOpen={showPayModal}
+          onClose={() => {
+            setShowPayModal(false);
+            setAccountToPay(null);
+          }}
+          onConfirm={handlePayAccount}
+          account={accountToPay}
+        />
 
         {/* Modal de Vendas Vinculadas */}
         {showSalesModal && (

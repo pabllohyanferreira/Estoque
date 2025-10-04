@@ -48,24 +48,33 @@ router.post('/', getUserDatabase, [
   body('name').notEmpty().withMessage('Nome é obrigatório'),
   body('email').optional().isEmail().withMessage('Email deve ser válido')
 ], (req, res) => {
+  console.log('📝 Dados recebidos para criar cliente:', req.body);
+  
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log('❌ Erros de validação:', errors.array());
     return res.status(400).json({ errors: errors.array() });
   }
 
   const {
-    name, email, phone, address, document
+    name, email, phone, address, cpf_cnpj, type
   } = req.body;
+  
+  console.log('✅ Validação passou, criando cliente:', { name, email, type });
 
   const query = `
-    INSERT INTO clients (name, email, phone, address, document)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO clients (name, email, phone, address, document, type)
+    VALUES (?, ?, ?, ?, ?, ?)
   `;
 
-  req.userDb.run(query, [name, email, phone, address, document], function(err) {
+  console.log('💾 Inserindo cliente no banco...');
+  req.userDb.run(query, [name, email, phone, address, cpf_cnpj, type || 'individual'], function(err) {
     if (err) {
+      console.error('❌ Erro ao criar cliente:', err);
       return res.status(500).json({ error: 'Erro ao criar cliente', details: err.message });
     }
+    
+    console.log('✅ Cliente criado com ID:', this.lastID);
     res.status(201).json({ 
       id: this.lastID, 
       message: 'Cliente criado com sucesso' 
@@ -85,16 +94,16 @@ router.put('/:id', getUserDatabase, [
 
   const { id } = req.params;
   const {
-    name, email, phone, address, document
+    name, email, phone, address, cpf_cnpj, type
   } = req.body;
 
   const query = `
     UPDATE clients 
-    SET name = ?, email = ?, phone = ?, address = ?, document = ?, updated_at = CURRENT_TIMESTAMP
+    SET name = ?, email = ?, phone = ?, address = ?, document = ?, type = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `;
 
-  req.userDb.run(query, [name, email, phone, address, document, id], function(err) {
+  req.userDb.run(query, [name, email, phone, address, cpf_cnpj, type || 'individual', id], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Erro ao atualizar cliente', details: err.message });
     }

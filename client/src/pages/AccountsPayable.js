@@ -5,19 +5,30 @@ import toast from 'react-hot-toast';
 import { formatCurrency, formatDate, isOverdue } from '../utils/formatters';
 import AccountModal from '../components/AccountModal';
 import ConfirmModal from '../components/ConfirmModal';
+import PayAccountModal from '../components/PayAccountModal';
+import useScroll from '../hooks/useScroll';
 
 const AccountsPayable = () => {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
-  // const [selectedSupplier, setSelectedSupplier] = useState('');
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showPayModal, setShowPayModal] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [editingAccount, setEditingAccount] = useState(null);
   const [accountToPay, setAccountToPay] = useState(null);
+  
+  // Estados para agrupamento por fornecedor (sempre ativo)
+  const [expandedSuppliers, setExpandedSuppliers] = useState(new Set());
+  
+  // Hook personalizado para scroll
+  const { scrollContainerRef, scrollStyles, scrollClasses } = useScroll({
+    scrollSpeed: 0.5,
+    smooth: true,
+    maxHeight: 600
+  });
 
   const loadAccounts = useCallback(async () => {
     try {
@@ -26,7 +37,6 @@ const AccountsPayable = () => {
       
       if (searchTerm) params.search = searchTerm;
       if (selectedStatus) params.status = selectedStatus;
-      // if (selectedSupplier) params.supplier = selectedSupplier;
 
       const response = await accountsPayableAPI.getAll(params);
       setAccounts(response.data);
@@ -37,6 +47,52 @@ const AccountsPayable = () => {
       setLoading(false);
     }
   }, [searchTerm, selectedStatus]);
+
+  // Função para agrupar contas por fornecedor
+  const getAccountsBySupplier = () => {
+    const grouped = {};
+    
+    accounts.forEach(account => {
+      const supplier = account.description || 'Fornecedor não informado';
+      
+      if (!grouped[supplier]) {
+        grouped[supplier] = {
+          supplier,
+          accounts: [],
+          totalAmount: 0,
+          pendingAmount: 0,
+          paidAmount: 0,
+          overdueAmount: 0
+        };
+      }
+      
+      grouped[supplier].accounts.push(account);
+      grouped[supplier].totalAmount += account.amount;
+      
+      if (account.status === 'paid') {
+        grouped[supplier].paidAmount += account.amount;
+      } else if (account.status === 'pending') {
+        if (isOverdue(account.due_date)) {
+          grouped[supplier].overdueAmount += account.amount;
+        } else {
+          grouped[supplier].pendingAmount += account.amount;
+        }
+      }
+    });
+    
+    return Object.values(grouped).sort((a, b) => a.supplier.localeCompare(b.supplier));
+  };
+
+  // Função para alternar expansão de fornecedor
+  const toggleSupplier = (supplier) => {
+    const newExpanded = new Set(expandedSuppliers);
+    if (newExpanded.has(supplier)) {
+      newExpanded.delete(supplier);
+    } else {
+      newExpanded.add(supplier);
+    }
+    setExpandedSuppliers(newExpanded);
+  };
 
   useEffect(() => {
     loadAccounts();
@@ -97,6 +153,7 @@ const AccountsPayable = () => {
 
   const handlePayAccount = async () => {
     try {
+      console.log('Tentando marcar conta como paga:', accountToPay);
       await accountsPayableAPI.markAsPaid(accountToPay.id);
       toast.success('Conta marcada como paga com sucesso!');
       setShowPayModal(false);
@@ -176,6 +233,11 @@ const AccountsPayable = () => {
                 <option value="paid">Pago</option>
                 <option value="overdue">Vencido</option>
               </select>
+              <div className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl shadow-lg flex items-center">
+                <CreditCard className="h-4 w-4 mr-2" />
+                Agrupado por Fornecedor
+              </div>
+              
               <button
                 onClick={loadAccounts}
                 className="px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white font-semibold rounded-xl shadow-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 flex items-center"
@@ -201,94 +263,170 @@ const AccountsPayable = () => {
               <div className="spinner"></div>
             </div>
           ) : (
-            <div>
-              <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Descrição
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Fornecedor
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Valor
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Vencimento
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Ações
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {accounts.map((account, index) => (
-                    <tr key={account.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors table-row-expand" style={{ animationDelay: `${index * 50}ms` }}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <CreditCard className="h-8 w-8 text-gray-400 dark:text-gray-500 mr-3" />
-                          <div>
-                            <div className="text-sm font-medium text-gray-900 dark:text-white">{account.description}</div>
-                            {account.category && (
-                              <div className="text-sm text-gray-500 dark:text-gray-400">{account.category}</div>
-                            )}
+            <div 
+              ref={scrollContainerRef}
+              className={scrollClasses}
+              style={scrollStyles}
+            >
+              {getAccountsBySupplier().map((supplierGroup, index) => (
+                <div key={supplierGroup.supplier} className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden mb-6" style={{ animationDelay: `${index * 100}ms` }}>
+                  {/* Header do Fornecedor */}
+                  <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 p-6 border-b border-gray-200 dark:border-gray-600">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+                          <CreditCard className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            {supplierGroup.supplier}
+                          </h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {supplierGroup.accounts.length} conta{supplierGroup.accounts.length !== 1 ? 's' : ''}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-6">
+                        <div className="text-right">
+                          <div className="text-sm text-gray-600 dark:text-gray-400">Total</div>
+                          <div className="text-lg font-bold text-gray-900 dark:text-white">
+                            {formatCurrency(supplierGroup.totalAmount)}
                           </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {account.supplier || '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        {formatCurrency(account.amount)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-1" />
-                          <span className={`text-sm ${isOverdue(account.due_date) ? 'text-red-600 dark:text-red-400 font-medium' : 'text-gray-900 dark:text-white'}`}>
-                            {formatDate(account.due_date)}
-                          </span>
+                        <div className="text-right">
+                          <div className="text-sm text-gray-600 dark:text-gray-400">Pendente</div>
+                          <div className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
+                            {formatCurrency(supplierGroup.pendingAmount)}
+                          </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(account.status, account.due_date)}`}>
-                          {getStatusLabel(account.status)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex items-center justify-end space-x-2">
-                          {account.status !== 'paid' && (
-                            <button
-                              onClick={() => openPayModal(account)}
-                              className="text-green-600 hover:text-green-900 btn-action"
-                              title="Marcar como Paga"
-                            >
-                              <CheckCircle className="h-4 w-4 icon-action" />
-                            </button>
-                          )}
-                          <button
-                            onClick={() => openEditModal(account)}
-                            className="text-indigo-600 hover:text-indigo-900 btn-action"
-                            title="Editar"
-                          >
-                            <Edit className="h-4 w-4 icon-action" />
-                          </button>
-                          <button
-                            onClick={() => openDeleteModal(account)}
-                            className="text-red-600 hover:text-red-900 btn-action"
-                            title="Deletar"
-                          >
-                            <Trash2 className="h-4 w-4 icon-action" />
-                          </button>
+                        <div className="text-right">
+                          <div className="text-sm text-gray-600 dark:text-gray-400">Vencido</div>
+                          <div className="text-lg font-bold text-red-600 dark:text-red-400">
+                            {formatCurrency(supplierGroup.overdueAmount)}
+                          </div>
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                        <div className="text-right">
+                          <div className="text-sm text-gray-600 dark:text-gray-400">Pago</div>
+                          <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                            {formatCurrency(supplierGroup.paidAmount)}
+                          </div>
+                        </div>
+                        
+                        <button
+                          onClick={() => toggleSupplier(supplierGroup.supplier)}
+                          className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                          title={expandedSuppliers.has(supplierGroup.supplier) ? 'Recolher' : 'Expandir'}
+                        >
+                          <div className={`transform transition-transform duration-200 ${
+                            expandedSuppliers.has(supplierGroup.supplier) ? 'rotate-180' : ''
+                          }`}>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Lista de Contas do Fornecedor */}
+                  {expandedSuppliers.has(supplierGroup.supplier) && (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-gray-50 dark:bg-gray-700">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                              Descrição
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                              Valor
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                              Vencimento
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                              Status
+                            </th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                              Ações
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                          {supplierGroup.accounts.map((account) => (
+                            <tr key={account.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <CreditCard className="h-5 w-5 text-gray-400 dark:text-gray-500 mr-3" />
+                                  <div>
+                                    <div className="text-sm font-medium text-gray-900 dark:text-white">{account.description}</div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">ID: {account.id}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm font-medium text-gray-900 dark:text-white">{formatCurrency(account.amount)}</div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
+                                  <div>
+                                    <div className={`text-sm ${isOverdue(account.due_date) ? 'text-red-600 dark:text-red-400 font-semibold' : 'text-gray-900 dark:text-white'}`}>
+                                      {formatDate(account.due_date)}
+                                    </div>
+                                    {isOverdue(account.due_date) && (
+                                      <div className="text-xs text-red-500 dark:text-red-400">Vencido</div>
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                  account.status === 'paid' 
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                                    : account.status === 'pending'
+                                    ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+                                    : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                                }`}>
+                                  {getStatusLabel(account.status)}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div className="flex items-center justify-end space-x-2">
+                                  {account.status !== 'paid' && (
+                                    <button
+                                      onClick={() => openPayModal(account)}
+                                      className="text-green-600 hover:text-green-900 btn-action"
+                                      title="Marcar como Pago"
+                                    >
+                                      <CheckCircle className="h-4 w-4 icon-action" />
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => openEditModal(account)}
+                                    className="text-blue-600 hover:text-blue-900 btn-action"
+                                    title="Editar"
+                                  >
+                                    <Edit className="h-4 w-4 icon-action" />
+                                  </button>
+                                  <button
+                                    onClick={() => openDeleteModal(account)}
+                                    className="text-red-600 hover:text-red-900 btn-action"
+                                    title="Excluir"
+                                  >
+                                    <Trash2 className="h-4 w-4 icon-action" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           )}
           
@@ -324,6 +462,16 @@ const AccountsPayable = () => {
           onConfirm={handleDeleteAccount}
           title="Deletar Conta a Pagar"
           message={`Tem certeza que deseja deletar a conta "${selectedAccount?.description}"? Esta ação não pode ser desfeita.`}
+        />
+
+        <PayAccountModal
+          isOpen={showPayModal}
+          onClose={() => {
+            setShowPayModal(false);
+            setAccountToPay(null);
+          }}
+          onConfirm={handlePayAccount}
+          account={accountToPay}
         />
 
       </div>

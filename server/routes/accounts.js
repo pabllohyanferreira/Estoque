@@ -156,9 +156,16 @@ router.get('/receivable', getUserDatabase, (req, res) => {
   const { status, client_id, dueDate } = req.query;
   
   let query = `
-    SELECT ar.*, c.name as client_name 
+    SELECT 
+      ar.*, 
+      c.name as client_name,
+      s.title as sale_title,
+      s.payment_method,
+      s.installments,
+      s.created_at as sale_date
     FROM accounts_receivable ar 
     LEFT JOIN clients c ON ar.client_id = c.id 
+    LEFT JOIN sales s ON ar.sale_id = s.id
     WHERE 1=1
   `;
   const params = [];
@@ -193,9 +200,16 @@ router.get('/receivable/:id', getUserDatabase, (req, res) => {
   const { id } = req.params;
   
   req.userDb.get(`
-    SELECT ar.*, c.name as client_name 
+    SELECT 
+      ar.*, 
+      c.name as client_name,
+      s.title as sale_title,
+      s.payment_method,
+      s.installments,
+      s.created_at as sale_date
     FROM accounts_receivable ar 
     LEFT JOIN clients c ON ar.client_id = c.id 
+    LEFT JOIN sales s ON ar.sale_id = s.id
     WHERE ar.id = ?
   `, [id], (err, row) => {
     if (err) {
@@ -226,11 +240,11 @@ router.post('/receivable', getUserDatabase, [
   } = req.body;
 
   const query = `
-    INSERT INTO accounts_receivable (description, amount, due_date, client_id, status)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO accounts_receivable (description, amount, due_date, client_id, status, sale_id)
+    VALUES (?, ?, ?, ?, ?, ?)
   `;
 
-  req.userDb.run(query, [description, amount, due_date, client_id, status || 'pending'], function(err) {
+  req.userDb.run(query, [description, amount, due_date, client_id, status || 'pending', req.body.sale_id || null], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Erro ao criar conta a receber', details: err.message });
     }
@@ -294,14 +308,20 @@ router.delete('/receivable/:id', getUserDatabase, (req, res) => {
 // Marcar conta a receber como paga
 router.post('/receivable/:id/pay', getUserDatabase, (req, res) => {
   const { id } = req.params;
+  
+  console.log('💳 Tentando marcar conta a receber como paga:', id);
+  console.log('👤 Usuário:', req.user?.name, 'ID:', req.user?.id);
 
   req.userDb.run('UPDATE accounts_receivable SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', ['paid', id], function(err) {
     if (err) {
+      console.error('❌ Erro ao marcar conta como paga:', err);
       return res.status(500).json({ error: 'Erro ao marcar conta como paga', details: err.message });
     }
     if (this.changes === 0) {
+      console.log('❌ Conta não encontrada ou já estava paga');
       return res.status(404).json({ error: 'Conta a receber não encontrada' });
     }
+    console.log('✅ Conta marcada como paga com sucesso. Mudanças:', this.changes);
     res.json({ message: 'Conta marcada como paga com sucesso' });
   });
 });

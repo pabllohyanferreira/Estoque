@@ -15,7 +15,7 @@ const ClientModal = ({ isOpen, onClose, onSubmit, client }) => {
           email: client.email || '',
           phone: client.phone || '',
           address: client.address || '',
-          cpf_cnpj: client.cpf_cnpj || '',
+          cpf_cnpj: client.document || '',
           type: client.type || 'individual'
         });
       } else {

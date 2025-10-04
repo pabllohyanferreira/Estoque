@@ -12,7 +12,8 @@ import AccountsPayable from './pages/AccountsPayable';
 import AccountsReceivable from './pages/AccountsReceivable';
 import Catalog from './pages/Catalog';
 import PublicCatalog from './pages/PublicCatalog';
-import Checkout from './pages/Checkout';
+import PublicCatalogView from './pages/PublicCatalogView';
+import CatalogPublic from './pages/CatalogPublic';
 import Reports from './pages/Reports';
 import Sales from './pages/Sales';
 import Users from './pages/Users';
@@ -51,7 +52,8 @@ function App() {
         <div className="App">
           <Routes>
             <Route path="/public" element={<PublicCatalog />} />
-            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/catalog-demo" element={<PublicCatalogView />} />
+            <Route path="/catalog-public" element={<CatalogPublic />} />
             <Route path="/login" element={
               isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login onLoginSuccess={() => updateAuthState(true)} />
             } />

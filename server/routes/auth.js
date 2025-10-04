@@ -1,5 +1,5 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const { db } = require('../database/init');
@@ -22,7 +22,7 @@ const handleValidationErrors = (req, res, next) => {
 // Validação para login
 const loginValidation = [
   body('email').isEmail().withMessage('Email inválido'),
-  body('password').isLength({ min: 6 }).withMessage('Senha deve ter pelo menos 6 caracteres')
+  body('password').isLength({ min: 1 }).withMessage('Senha é obrigatória')
 ];
 
 // Login

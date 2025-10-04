@@ -46,6 +46,15 @@ const Items = () => {
       setCategories(response.data);
     } catch (error) {
       console.error('Erro ao carregar categorias:', error);
+      console.error('Detalhes do erro:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        config: error.config
+      });
+      
+      // Se não há categorias, inicializar com array vazio
+      setCategories([]);
     }
   }, []);
 
@@ -282,7 +291,7 @@ const Items = () => {
                     <tr key={item.id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 dark:hover:from-gray-700 dark:hover:to-blue-900/20 transition-all duration-200 transform hover:scale-[1.01]" style={{ animationDelay: `${index * 50}ms` }}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <ProductImage imageData={item.image_data} alt={item.name} />
+                          <ProductImage imageData={item.image_url} alt={item.name} />
                           <div>
                             <div className="text-sm font-semibold text-gray-900 dark:text-white">{item.name}</div>
                             <div className="text-sm text-gray-500 dark:text-gray-400">{item.description}</div>

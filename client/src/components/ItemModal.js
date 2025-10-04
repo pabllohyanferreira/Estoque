@@ -53,8 +53,8 @@ const ItemModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
         reset(formData);
         
         // Carregar imagem existente se houver
-        if (item.image_data) {
-          setImagePreview(item.image_data);
+        if (item.image_url) {
+          setImagePreview(item.image_url);
         } else {
           setImagePreview(null);
         }
